@@ -1,0 +1,214 @@
+openapi: "3.0.1"
+info:
+  title: Users Service API
+  description: Users Microservice of Message in a Bottle Application
+  version: "0.1"
+
+servers:
+  - url: /
+
+paths:
+  /user:
+    post:
+      summary: Add a new user
+      tags:
+        - Users
+      operationId: mib.resources.users.create_user
+      requestBody:
+        description: Create a new customer inside microservice app
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        201:
+          description: Created
+        200:
+          description: User already exists
+        default:
+          description: Error during creation of the user
+
+  /user/{user_id}:
+    get:
+      tags: [ User ]
+      description: Get a user by its id
+      operationId: mib.resources.users.get_user
+      parameters:
+        - name: user_id
+          description: User Unique ID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Return user
+        404:
+          description: User not found
+        default:
+          description: An error occured during retrieving the user
+
+    delete:
+      tags: [ User ]
+      description: Delete a user by its id
+      operationId: mib.resources.users.delete_user
+      parameters:
+        - name: user_id
+          description: User Unique ID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        202:
+          description: User deleted
+        404:
+          description: User not found
+        default:
+          description: An error occured during the deletion the user
+
+  /user_email/{user_email}:
+    get:
+      tags: [ User ]
+      description: Get a user by its email
+      operationId: mib.resources.users.get_user_by_email
+      parameters:
+        - name: user_email
+          description: User Unique Email
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Return user
+        404:
+          description: User not found
+        default:
+          description: An error occured during retrieving the user
+  /authenticate:
+    post:
+      summary: Authenticate a user
+      tags: [ Users ]
+      operationId: mib.resources.auth.authenticate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              x-body-name: auth
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@studenti.unipi.it
+                password:
+                  type: string
+                  example: abcd123A
+      responses:
+        200:
+          description: User credentials are correct
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authentication:
+                    type: string
+                    description: "It can be failure or success"
+                    default: 'failure'
+                  user:
+                    $ref: '#/components/schemas/User'
+
+        400:
+          description: User credentials are not correct
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authentication:
+                    type: string
+                    description: "It can be failure or success"
+                    default: 'failure'
+        default:
+          description: An error occured during login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error_message:
+                    type: string        
+components:
+  schemas:
+    User:
+      required:
+        - firstname
+        - lastname
+        - email
+        - birthdate
+      type: object
+      properties:
+        firstname:
+          type: string
+          description: First name of customer
+          example: Mario
+        lastname:
+          type: string
+          description: Last name of customer
+          example: Rossi
+        email:
+          type: string
+          description: Customer email
+          example: mario.rossi@example.org
+          format: email
+        birthdate:
+          type: string
+          description: Customer birthdate
+          example: '2020-01-01'
+          format: date
+        phone:
+          type: string
+          description: Customer phone number
+          example: '+39 3332222384'
+          minLength: 10
+          maxLength: 25
+        password:
+          type: string
+          description: Customer password
+          example: 'abcd1234'
+          minLength: 5
+          maxLength: 127
+    
+    UpdateUser:
+      required:
+        - email
+        - password
+        - phone
+      type: object
+      properties:
+        email:
+          type: string
+          description: Customer email
+          example: mario.rossi@example.org
+          format: email
+        password:
+          type: string
+          description: Customer password
+          example: 'abcd1234'
+          minLength: 5
+          maxLength: 127
+        phone:
+          type: string
+          description: Customer phone number
+          example: '+39 3332222384'
+          minLength: 10
+          maxLength: 25
