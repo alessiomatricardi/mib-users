@@ -21,17 +21,19 @@ def upgrade():
     op.create_table('User',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('email', sa.Unicode(length=128), nullable=False),
-    sa.Column('first_name', sa.Unicode(length=128), nullable=False),
-    sa.Column('last_name', sa.Unicode(length=128), nullable=False),
+    sa.Column('firstname', sa.Unicode(length=128), nullable=False),
+    sa.Column('lastname', sa.Unicode(length=128), nullable=False),
     sa.Column('password', sa.Unicode(length=128), nullable=True),
-    sa.Column('birthdate', sa.Date(), nullable=True),
-    sa.Column('phone', sa.Unicode(length=128), nullable=False),
+    sa.Column('date_of_birth', sa.Date(), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=True),
     sa.Column('is_admin', sa.Boolean(), nullable=True),
     sa.Column('authenticated', sa.Boolean(), nullable=True),
+    sa.Column('has_picture', sa.Boolean(), nullable=True),
+    sa.Column('lottery_points', sa.Integer(), nullable=True),
+    sa.Column('content_filter_enabled', sa.Boolean(), nullable=True),
+    
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('email'),
-    sa.UniqueConstraint('phone')
+    sa.UniqueConstraint('email')
     )
     # ### end Alembic commands ###
 
