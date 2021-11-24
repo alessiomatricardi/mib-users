@@ -11,7 +11,8 @@ def authenticate(auth):
     user = UserManager.retrieve_by_email(auth['email'])
     response = {
         'authentication': 'failure',
-        'user': None
+        'user': None,
+        'error_message': 'TODO BOH PROVA AIUTOOO'
     }
     response_code = 401
 

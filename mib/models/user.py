@@ -2,6 +2,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from mib import db
 
+# default library salt length is 8
+# adjusting it to 16 allow us to improve the strongness of the password
+_SALT_LENGTH = 16
+
 
 class User(db.Model):
     """Representation of User model."""
@@ -9,20 +13,22 @@ class User(db.Model):
     # The name of the table that we explicitly set
     __tablename__ = 'User'
 
-    # A list of fields to be serialized
-    SERIALIZE_LIST = ['id', 'email', 'is_active', 'authenticated', 'is_anonymous']
+    # A list of fields to be serialized TODO CONTROLLARE
+    SERIALIZE_LIST = ['id', 'email', 'is_active', 'is_anonymous']
 
     # All fields of user
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    email = db.Column(db.Unicode(128), nullable=False, unique=True)
-    first_name = db.Column(db.Unicode(128), nullable=False, unique=False)
-    last_name = db.Column(db.Unicode(128), nullable=False, unique=False)
+    email = db.Column(db.Unicode(128), unique=True, nullable=False) # TODO insert again 
+    firstname = db.Column(db.Unicode(128))
+    lastname = db.Column(db.Unicode(128))
     password = db.Column(db.Unicode(128))
-    birthdate = db.Column(db.Date())
-    phone = db.Column(db.Unicode(128), nullable=False, unique=True)
+    date_of_birth = db.Column(db.Date)
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
     authenticated = db.Column(db.Boolean, default=True)
+    has_picture = db.Column(db.Boolean, default=False)  # has the user a personal profile picture
+    lottery_points = db.Column(db.Integer, default=0)
+    content_filter_enabled = db.Column(db.Boolean, default=False)
     is_anonymous = False
 
     def __init__(self, *args, **kw):
@@ -30,27 +36,33 @@ class User(db.Model):
         self.authenticated = False
 
     def set_password(self, password):
-        self.password = generate_password_hash(password)
+        '''
+        According to https://werkzeug.palletsprojects.com/en/2.0.x/utils/#werkzeug.security.generate_password_hash
+        generate_password_hash returns a string in the format below
+        pbkdf2:sha256:num_of_iterations$salt$hash
+        '''
+        self.password = generate_password_hash(password, salt_length = _SALT_LENGTH)
 
     def set_email(self, email):
         self.email = email
 
     def set_first_name(self, name):
-        self.first_name = name
+        self.firstname = name
 
     def set_last_name(self, name):
-        self.last_name = name
+        self.lastname = name
 
     def is_authenticated(self):
         return self.authenticated
 
     def set_birthday(self, birthdate):
-        self.birthdate = birthdate
-
-    def set_phone(self, phone):
-        self.phone = phone
+        self.date_of_birth = birthdate
 
     def authenticate(self, password):
+        # an user no more active couldn't authenticate himself
+        if not self.is_active:
+            return False
+        
         checked = check_password_hash(self.password, password)
         self.authenticated = checked
         return self.authenticated
