@@ -8,19 +8,19 @@ servers:
   - url: /
 
 paths:
-  /user:
+  /register:
     post:
-      summary: Add a new user
+      summary: Register a new user
       tags:
         - Users
-      operationId: mib.resources.users.create_user
+      operationId: mib.resources.users_new.create_user #_register
       requestBody:
-        description: Create a new customer inside microservice app
+        description: Create a new user
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/RegisterUser'
       responses:
         201:
           description: Created
@@ -29,11 +29,11 @@ paths:
         default:
           description: Error during creation of the user
 
-  /user/{user_id}:
+  /users/{user_id}:
     get:
-      tags: [ User ]
+      tags: [ Users ]
       description: Get a user by its id
-      operationId: mib.resources.users.get_user
+      operationId: mib.resources.users_new.get_user #_user_details
       parameters:
         - name: user_id
           description: User Unique ID
@@ -51,7 +51,7 @@ paths:
           description: An error occured during retrieving the user
 
     delete:
-      tags: [ User ]
+      tags: [ Users ]
       description: Delete a user by its id
       operationId: mib.resources.users.delete_user
       parameters:
@@ -72,7 +72,7 @@ paths:
 
   /user_email/{user_email}:
     get:
-      tags: [ User ]
+      tags: [ Users ]
       description: Get a user by its email
       operationId: mib.resources.users.get_user_by_email
       parameters:
@@ -186,6 +186,43 @@ components:
           description: Customer password
           example: 'abcd1234'
           minLength: 5
+          maxLength: 127
+    
+    RegisterUser:
+      required:
+        - firstname
+        - lastname
+        - email
+        - date_of_birth
+        - password
+      type: object
+      properties:
+        firstname:
+          type: string
+          description: First name of user
+          example: Mario
+          maxLength: 127
+        lastname:
+          type: string
+          description: Last name of user
+          example: Rossi
+          maxLength: 127
+        email:
+          type: string
+          description: User email
+          example: mario.rossi@example.org
+          format: email
+          maxLength: 127
+        date_of_birth:
+          type: string
+          description: User birthdate
+          example: '2020-01-01'
+          format: date
+        password:
+          type: string
+          description: User password
+          example: 'abcd1234'
+          minLength: 8
           maxLength: 127
     
     UpdateUser:
