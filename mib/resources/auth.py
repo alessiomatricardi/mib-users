@@ -2,7 +2,7 @@ from mib.dao.user_manager import UserManager
 from flask import jsonify
 
 
-def authenticate(auth):
+def login(auth):
     """
     Authentication resource for generic user.
     :param auth: a dict with email and password keys.

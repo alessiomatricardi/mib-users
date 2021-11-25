@@ -20,7 +20,7 @@ class TestAuth(ViewTest):
             'password': TestAuth.faker.password()
         }
 
-        response = self.client.post('/authenticate', json=data)
+        response = self.client.post('/login', json=data)
         json_response = response.json
 
         assert response.status_code == 401

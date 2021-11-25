@@ -89,11 +89,11 @@ paths:
           description: User not found
         default:
           description: An error occured during retrieving the user
-  /authenticate:
+  /login:
     post:
-      summary: Authenticate a user
+      summary: Login a user
       tags: [ Users ]
-      operationId: mib.resources.auth.authenticate
+      operationId: mib.resources.auth.login
       requestBody:
         required: true
         content:
