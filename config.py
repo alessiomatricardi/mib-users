@@ -22,6 +22,7 @@ class DevConfig(DebugConfig):
     This is the main configuration object for application.
     """
     SQLALCHEMY_ECHO = False
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///../users_ms.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 class TestConfig(Config):
@@ -35,7 +36,8 @@ class TestConfig(Config):
     WTF_CSRF_ENABLED = False
 
     SQLALCHEMY_ECHO = False
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///../users_ms.db'
+    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 

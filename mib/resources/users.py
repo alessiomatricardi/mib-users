@@ -4,8 +4,9 @@ from mib.models.user import User
 import datetime
 
 
-def create_user():
-    """This method allows the creation of a new user.
+def register():
+    """
+    This method allows the registration of a new user.
     """
     post_data = request.get_json()
     email = post_data.get('email')
@@ -18,14 +19,13 @@ def create_user():
         }), 200
 
     user = User()
-    birthday = datetime.datetime.strptime(post_data.get('birthdate'),
+    date_of_birth = datetime.datetime.strptime(post_data.get('date_of_birth'),
                                           '%Y-%m-%d')
     user.set_email(email)
     user.set_password(password)
     user.set_first_name(post_data.get('firstname'))
     user.set_last_name(post_data.get('lastname'))
-    user.set_birthday(birthday)
-    user.set_phone(post_data.get('phone'))
+    user.set_birthday(date_of_birth)
     UserManager.create_user(user)
 
     response_object = {

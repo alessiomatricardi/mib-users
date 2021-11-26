@@ -32,19 +32,6 @@ services:
       - POSTGRES_HOST=db
     depends_on:
       - db
-      - migrations
-
-  migrations:
-    #
-    # this service is used to apply migrations on db
-    #
-    <<: *mib_users
-    command: flask db upgrade
-    env_file:
-      - env_file
-    environment:
-      - POSTGRES_HOST=db
-    restart: on-failure
 
 # Declaring all volumes
 volumes:
