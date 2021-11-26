@@ -9,23 +9,20 @@ class UserManager(Manager):
         Manager.create(user=user)
 
     @staticmethod
-    def retrieve_by_id(id_):
+    def retrieve_by_id(id_) -> User:
         Manager.check_none(id=id_)
         return User.query.get(id_)
 
     @staticmethod
-    def retrieve_by_email(email):
+    def retrieve_by_email(email) -> User:
         Manager.check_none(email=email)
         return User.query.filter(User.email == email).first()
-    
-    @staticmethod
-    def retrieve_by_phone(phone):
-        Manager.check_none(phone=phone)
-        return User.query.filter(User.phone == phone).first()
 
     @staticmethod
     def update_user(user: User):
         Manager.update(user=user)
+
+    # TODO controllare utilità
 
     @staticmethod
     def delete_user(user: User):

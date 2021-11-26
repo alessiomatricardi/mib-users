@@ -19,10 +19,10 @@ class User(db.Model):
     # All fields of user
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.Unicode(128), unique=True, nullable=False) # TODO insert again 
-    firstname = db.Column(db.Unicode(128))
-    lastname = db.Column(db.Unicode(128))
-    password = db.Column(db.Unicode(128))
-    date_of_birth = db.Column(db.Date)
+    firstname = db.Column(db.Unicode(128), nullable=False)
+    lastname = db.Column(db.Unicode(128), nullable=False)
+    password = db.Column(db.Unicode(128), nullable=False)
+    date_of_birth = db.Column(db.Date, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
     authenticated = db.Column(db.Boolean, default=True)
