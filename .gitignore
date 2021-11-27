@@ -2,7 +2,7 @@
 *.db
 
 ### Don't save all pictures ###
-monolith/static/pictures/*
+mib/static/pictures/*
 
 ### Default profile pictures should be saved ###
 !mib/static/pictures/default.jpeg

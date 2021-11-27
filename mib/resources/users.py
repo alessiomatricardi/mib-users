@@ -281,6 +281,7 @@ def modify_profile_picture():
     }
     return jsonify(response_object), 200
 
+
 def get_profile_picture(user_id):
 
     user = UserManager.retrieve_by_id(user_id)
