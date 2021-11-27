@@ -181,7 +181,7 @@ def modify_password():
 def modify_picture():
     pass
 
-
+# /users/<user_id> or /profile
 def get_user(user_id):
     """
     Get a user by its current id.

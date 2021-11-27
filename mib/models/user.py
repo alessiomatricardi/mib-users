@@ -14,7 +14,7 @@ class User(db.Model):
     __tablename__ = 'User'
 
     # A list of fields to be serialized TODO CONTROLLARE
-    SERIALIZE_LIST = ['id', 'email', 'is_active', 'is_anonymous']
+    SERIALIZE_LIST = ['id', 'email', 'is_active', 'is_anonymous','firstname','lastname','date_of_birth','lottery_points','has_picture','content_filter_enabled']
 
     # All fields of user
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
