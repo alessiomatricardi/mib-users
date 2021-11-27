@@ -1,6 +1,13 @@
 # Databases
 *.db
 
+### Don't save all pictures ###
+monolith/static/pictures/*
+
+### Default profile pictures should be saved ###
+!mib/static/pictures/default.jpeg
+!mib/static/pictures/default_100.jpeg
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

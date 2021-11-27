@@ -1,7 +1,12 @@
+import datetime
+import base64
+import os
+
 from flask import request, jsonify
 from mib.dao.user_manager import UserManager
 from mib.models.user import User
-import datetime
+from PIL import Image
+from io import BytesIO
 from werkzeug.security import check_password_hash
 
 """
@@ -51,7 +56,7 @@ def register():
 
     return jsonify(response_object), 201
 
-# /unregister
+
 def unregister():
     """
     Unregister the user.
@@ -126,7 +131,7 @@ def modify_password():
     """
     Used to modify password 
     called using /profile/password
-    if it succeds return {'status': 'success','message': 'Modified'}
+    if it succeeds return {'status': 'success','message': 'Modified'}
     if it fails return {'status': 'failure','message': 'User not found'}
     """
     post_data = request.get_json()
@@ -178,8 +183,151 @@ def modify_password():
     return jsonify(response_object), 200
 
 
-def modify_picture():
-    pass
+def modify_content_filter():
+    """
+    Used to enable/disable content_filter 
+    called using /profile/content_filter
+    if it succeds, returns {'status': 'success','message': 'Modified', 'enabled': True/False}
+    if it fails return {'status': 'failure','message': 'User not found'}
+    """
+    post_data = request.get_json()
+    id = post_data.get('id')
+    content_filter = post_data.get('content_filter')
+
+    user = UserManager.retrieve_by_id(id)
+
+    if user is None:
+        response_object = {
+            'status': 'failure',
+            'message': 'User not found',
+        }
+        return jsonify(response_object), 404
+    
+    user.content_filter_enabled = content_filter
+    UserManager.update_user(user)
+    
+    response_object = {
+        'status': 'success',
+        'message': 'Modified',
+        'enabled': content_filter
+    }
+    return jsonify(response_object), 200
+    
+
+def modify_profile_picture():
+    '''
+    TODO ADD FEATURE INSIDE API GATEWAY WHICH SERIALIZES THE IMAGE IN A JSON { id: <id>, base64: <base64>}
+
+    data = {}
+    with open('some.gif', mode='rb') as file:
+        img = file.read()
+    data['img'] = base64.encodebytes(img).decode('utf-8')
+
+    print(json.dumps(data))
+    '''
+
+    """
+    Used to modify profile picture 
+    called using /profile/picture
+    if it succeds return {'status': 'success','message': 'Modified'}
+    if it fails return {'status': 'failure','message': 'User not found'}
+    """
+    post_data = request.get_json()
+    id = post_data.get('id')
+    img_base64 = post_data.get('image')
+
+    user = UserManager.retrieve_by_id(id)
+
+    if user is None:
+        response_object = {
+            'status': 'failure',
+            'message': 'User not found',
+        }
+        return jsonify(response_object), 404
+    
+    # decoding image
+    img_data = BytesIO(base64.b64decode(img_base64))
+    
+    # store it, in case of a previously inserted image it's going to be overwritten
+    try:
+
+        # save image in 256x256
+        img = Image.open(img_data)
+        img = img.convert('RGB') # in order to support also Alpha transparency images such as PNGs
+        img = img.resize([256, 256], Image.ANTIALIAS)
+        path_to_save = os.path.join(os.getcwd(), 'mib', 'static', 'pictures', str(id) + '.jpeg')
+        img.save(path_to_save, "JPEG", quality=100, subsampling=0)
+
+        # save image in 100x100
+        img = Image.open(img_data)
+        img = img.convert('RGB')  # in order to support also Alpha transparency images such as PNGs
+        img = img.resize([100, 100], Image.ANTIALIAS)
+        path_to_save = os.path.join(os.getcwd(), 'mib', 'static', 'pictures', str(id) + '_100.jpeg')
+        img.save(path_to_save, "JPEG", quality=100, subsampling=0)
+
+    except Exception:
+        response_object = {
+            'status': 'failure',
+            'message': 'Error in saving the image',
+        }
+        return jsonify(response_object), 500
+    
+    user.has_picture = True
+    UserManager.update_user(user)
+
+    response_object = {
+        'status': 'success',
+        'message': 'Modified',
+    }
+    return jsonify(response_object), 200
+
+def get_profile_picture(user_id):
+
+    user = UserManager.retrieve_by_id(user_id)
+
+    if user is None:
+        response_object = {
+            'status': 'failure',
+            'message': 'User not found',
+        }
+        return jsonify(response_object), 404
+
+    filename = 'default'
+
+    # if has picture, then his filename is <id>.jpeg
+    if (user.has_picture):
+        filename = str(user_id)
+
+    filename_100 = filename + "_100.jpeg"
+    filename += ".jpeg"
+    
+    path_to_retrieve = os.path.join(os.getcwd(), 'mib', 'static', 'pictures', filename)
+    path_to_retrieve_100 = os.path.join(os.getcwd(), 'mib', 'static', 'pictures', filename_100)
+
+    data_img = None
+    data_img_100 = None
+    try:
+        with open(path_to_retrieve, mode='rb') as image:
+            data_img = base64.encodebytes(image.read()).decode('utf-8')
+
+        
+        with open(path_to_retrieve_100, mode='rb') as image_100:
+            data_img_100 = base64.encodebytes(image_100.read()).decode('utf-8')
+    except Exception:
+        response_object = {
+            'status': 'failure',
+            'message': 'Error while retrieving the images',
+        }
+        return jsonify(response_object), 500
+
+    response_object = {
+        'status': 'success',
+        'image': data_img,
+        'image_100': data_img_100
+    }
+
+    return jsonify(response_object), 200
+
 
 # /users/<user_id> or /profile
 def get_user(user_id):
