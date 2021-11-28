@@ -14,7 +14,7 @@ class TestAuth(ViewTest):
         # login for a customer
         user = self.login_test_user()
 
-        # login with a wrong email
+        # login with a wrong password
         data = {
             'email': user.email,
             'password': TestAuth.faker.password()

@@ -306,7 +306,7 @@ def get_profile_picture(user_id):
     except Exception:
         response_object = {
             'status': 'failure',
-            'message': 'Error while retrieving the images',
+            'message': 'Error while retrieve the images',
         }
         return jsonify(response_object), 500
 

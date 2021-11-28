@@ -28,14 +28,15 @@ class TestUser(ModelTest):
     @staticmethod
     def generate_random_user():
         email = TestUser.faker.email()
+        firstname = TestUser.faker.first_name()
+        lastname = TestUser.faker.last_name()
+        date_of_birth = TestUser.faker.date()
         password = TestUser.faker.password()
         is_active = TestUser.faker.boolean()
         is_admin = TestUser.faker.boolean()
         authenticated = TestUser.faker.boolean()
         is_anonymous = TestUser.faker.boolean()
-        first_name = TestUser.faker.first_name()
-        last_name = TestUser.faker.last_name()
-        phone = TestUser.faker.phone_number()
+        
 
         from mib.models import User
 
@@ -46,22 +47,23 @@ class TestUser(ModelTest):
             is_admin=is_admin,
             authenticated=authenticated,
             is_anonymous=is_anonymous,
-            first_name=first_name,
-            last_name=last_name,
-            phone=phone,
+            firstname=firstname,
+            lastname=lastname,
+            date_of_birth =date_of_birth,
+            has_picture = False,
+            lottery_points = 0,
+            content_filter_enabled = False
         )
 
         return user
 
     def test_set_password(self):
         user = TestUser.generate_random_user()
-        password = self.faker.password(length=10, special_chars=False, upper_case=False)
+        password = self.faker.password(length=15, special_chars=False, upper_case=False)
+        #password = 'prova123'
         user.set_password(password)
 
-        self.assertEqual(
-            user.authenticate(password),
-            True
-        )
+        self.assertEqual(user.authenticate(password),True)
     
     def test_set_email(self):
         user = TestUser.generate_random_user()
