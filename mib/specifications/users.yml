@@ -531,7 +531,18 @@ paths:
                     $ref: '#/components/schemas/User'
 
         401:
-          description: User credentials are not correct
+          description: User credentials are not correct or user is no longer active
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authentication:
+                    type: string
+                    description: "It can be failure or success"
+                    default: 'failure'
+        404:
+          description: User not found
           content:
             application/json:
               schema:
