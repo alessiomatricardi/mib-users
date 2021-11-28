@@ -1,7 +1,9 @@
-# Message in A Bottle - users
+# My message in A Bottle - users microservice
 
 This is the source code of Message in a Bottle application, self project of *Advanced Software Engineering* course,
 University of Pisa.
+
+[![CircleCI](https://circleci.com/gh/alessiomatricardi/mib-users/tree/master.svg?style=svg)](https://circleci.com/gh/alessiomatricardi/mib-users/tree/master) [![codecov](https://codecov.io/gh/alessiomatricardi/mib-users/branch/master/graph/badge.svg?token=C2BGFF5GF8)](https://codecov.io/gh/alessiomatricardi/mib-users)
 
 ## Team info
 
