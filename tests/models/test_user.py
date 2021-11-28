@@ -3,6 +3,7 @@ import unittest
 from faker import Faker
 
 from .model_test import ModelTest
+import datetime
 
 
 class TestUser(ModelTest):
@@ -30,9 +31,9 @@ class TestUser(ModelTest):
         email = TestUser.faker.email()
         firstname = TestUser.faker.first_name()
         lastname = TestUser.faker.last_name()
-        date_of_birth = TestUser.faker.date()
+        date_of_birth = datetime.datetime.fromisoformat(TestUser.faker.date())
         password = TestUser.faker.password()
-        is_active = TestUser.faker.boolean()
+        is_active = True
         is_admin = TestUser.faker.boolean()
         authenticated = TestUser.faker.boolean()
         is_anonymous = TestUser.faker.boolean()
