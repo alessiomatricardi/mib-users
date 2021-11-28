@@ -9,22 +9,11 @@ from PIL import Image
 from io import BytesIO
 from werkzeug.security import check_password_hash
 
-"""
-/register
-{
-    'user': user.serialize(),
-    'status': 'success',
-    'message': 'Successfully registered',
-}
-or 
-{
-    'status': 'Already present'
-}
-"""
+
 def register():
     """
     This method allows the registration of a new user.
-    called using /register.
+    Called by /register.
     if it succeeds return {'user': user.serialize(), 'status': 'success', 'message': 'Successfully registered'}
     if it fails return{'status': 'Already present'}
     """
@@ -60,7 +49,7 @@ def register():
 def unregister():
     """
     Unregister the user.
-    called using /unregister.
+    Called by /unregister.
     if it fails return {'status': 'success', 'message': 'Successfully unregistered'}
     if it fails return {'status': 'failure', 'message': 'user not found'} or {'status': 'failure','message': 'Unauthorized'}
     """
@@ -97,7 +86,7 @@ def unregister():
 def modify_data():
     """
     Modify personal data of the user.
-    called using /profile/data
+    Called by /profile/data
     if it succeeds return {'status': 'success','message': 'Modified'}
     if it fails return {'status': 'failure','message': 'User not found'}
     """
@@ -130,7 +119,7 @@ def modify_data():
 def modify_password():
     """
     Used to modify password 
-    called using /profile/password
+    Called by /profile/password
     if it succeeds return {'status': 'success','message': 'Modified'}
     if it fails return {'status': 'failure','message': 'User not found'}
     """
@@ -186,7 +175,7 @@ def modify_password():
 def modify_content_filter():
     """
     Used to enable/disable content_filter 
-    called using /profile/content_filter
+    Called by /profile/content_filter
     if it succeds, returns {'status': 'success','message': 'Modified', 'enabled': True/False}
     if it fails return {'status': 'failure','message': 'User not found'}
     """
@@ -228,7 +217,7 @@ def modify_profile_picture():
 
     """
     Used to modify profile picture 
-    called using /profile/picture
+    Called by /profile/picture
     if it succeds return {'status': 'success','message': 'Modified'}
     if it fails return {'status': 'failure','message': 'User not found'}
     """
@@ -330,6 +319,33 @@ def get_profile_picture(user_id):
     return jsonify(response_object), 200
 
 
+def get_users_list(user_id):
+    # TODO should be provided with the request
+    # TODO COMMENTS
+    blacklisted = [3, 4]
+
+    user = UserManager.retrieve_by_id(user_id)
+
+    if user is None:
+        response_object = {
+            'status': 'failure',
+            'message': 'User not found',
+        }
+        return jsonify(response_object), 404
+    
+    users = UserManager.retrieve_users_by_blacklist(user_id, blacklisted)
+
+    users_json = [user.serialize() for user in users]
+
+    response_object = {
+        'status': 'success',
+        'message': 'Users list retrived',
+        'users' : users_json
+    }
+    
+    return jsonify(response_object), 200
+
+
 # /users/<user_id> or /profile
 def get_user(user_id):
     """
@@ -346,6 +362,7 @@ def get_user(user_id):
     return jsonify(user.serialize()), 200
 
 
+# TODO controllare se serve
 def get_user_by_email(user_email):
     """
     Get a user by its current email.

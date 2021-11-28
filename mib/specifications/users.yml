@@ -381,6 +381,27 @@ paths:
         default:
           description: Error during the modification of the profile picture
   
+  /users/{user_id}/available:
+    get:
+      tags: [ Users ]
+      description: Get the list of available users of a specific user
+      operationId: mib.resources.users.get_users_list
+      parameters:
+        - name: user_id
+          description: User Unique ID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Return user
+        404:
+          description: User not found
+        default:
+          description: An error occured while retrieving the list of users
+
   /users/{user_id}:
     get:
       tags: [ Users ]

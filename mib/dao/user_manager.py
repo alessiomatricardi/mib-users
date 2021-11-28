@@ -21,6 +21,16 @@ class UserManager(Manager):
     @staticmethod
     def update_user(user: User):
         Manager.update(user=user)
+    
+    @staticmethod
+    def retrieve_users_by_blacklist(id: int, blacklist):
+        Manager.check_none(id=id)
+        Manager.check_none(blacklist=blacklist)
+        all_users = User.query.filter(User.id != id).filter(~User.id.in_(blacklist))\
+            .filter(User.is_active == True).filter(User.is_admin == False).all()
+        
+        return all_users
+
 
     # TODO controllare utilità
 

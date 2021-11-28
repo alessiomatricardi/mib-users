@@ -55,8 +55,8 @@ class User(db.Model):
     def is_authenticated(self):
         return self.authenticated
 
-    def set_birthday(self, birthdate):
-        self.date_of_birth = birthdate
+    def set_birthday(self, date_of_birth):
+        self.date_of_birth = date_of_birth
 
     def authenticate(self, password):
         # an user no more active couldn't authenticate himself
