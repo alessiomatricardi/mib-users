@@ -20,6 +20,6 @@ jobs:
  
 workflows:
   version: 2.1
-  monolith_project:
+  mib_users:
     jobs:
       - toxify
