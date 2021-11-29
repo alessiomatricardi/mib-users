@@ -12,6 +12,8 @@ from PIL import Image
 from io import BytesIO
 from werkzeug.security import check_password_hash
 
+BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
+REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
 def register():
     """
@@ -276,8 +278,6 @@ def modify_profile_picture():
 
 def get_profile_picture(current_user_id,user_id):
 
-    BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
-    REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
     
     user = UserManager.retrieve_by_id(user_id)
 
@@ -360,8 +360,6 @@ def get_users_list(current_user_id):
     # TODO should be provided with the request
     # TODO COMMENTS
     # blacklisted = [3, 4]
-    BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
-    REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
     user = UserManager.retrieve_by_id(current_user_id)
 
@@ -385,10 +383,10 @@ def get_users_list(current_user_id):
 
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
         response_object = {
-        'status': 'failure',
-        'message': 'Error in retrieving blacklist',
+            'status': 'failure',
+            'message': 'Error in retrieving blacklist',
         }
-        return jsonify(response_object),500
+        return jsonify(response_object), 500
 
     
     users = UserManager.retrieve_users_by_blacklist(current_user_id, blacklist)
@@ -412,8 +410,6 @@ def get_user(current_user_id,user_id):
     :param user_id: user it
     :return: json response
     """
-    BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
-    REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
     user = UserManager.retrieve_by_id(user_id)
     if user is None:
@@ -422,33 +418,37 @@ def get_user(current_user_id,user_id):
 
     current_user = UserManager.retrieve_by_id(current_user_id)
     if current_user is None:
-        response = {'status': 'Current user not present'}
+        response = {
+            'status': 'Current user not present'
+        }
         return jsonify(response), 404
 
     blacklist = None
 
-    try:
-        blacklist_response = requests.get("%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(current_user_id)),
-                                timeout=REQUESTS_TIMEOUT_SECONDS)
-        json_payload = blacklist_response.json()
-        if blacklist_response.status_code == 200:
-            blacklist = json.loads(json_payload['blacklist'])
-        else:
-            raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+    if current_user_id != user_id:
 
-    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-        response_object = {
-        'status': 'failure',
-        'message': 'Error in retrieving blacklist',
-        }
-        return jsonify(response_object),500
+        try:
+            blacklist_response = requests.get("%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(current_user_id)),
+                                    timeout=REQUESTS_TIMEOUT_SECONDS)
+            json_payload = blacklist_response.json()
+            if blacklist_response.status_code == 200:
+                blacklist = json.loads(json_payload['blacklist'])
+            else:
+                raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
 
-    if user.id in blacklist:
-        response_object = {
-        'status': 'failure',
-        'message': 'Unauthorized',
-        }
-        return jsonify(response_object),401
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            response_object = {
+                'status': 'failure',
+                'message': 'Error in retrieving blacklist',
+            }
+            return jsonify(response_object), 500
+
+        if user.id in blacklist:
+            response_object = {
+                'status': 'failure',
+                'message': 'Unauthorized',
+            }
+            return jsonify(response_object), 401
 
     return jsonify(user.serialize()), 200
 
