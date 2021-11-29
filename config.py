@@ -2,6 +2,22 @@ class Config(object):
     DEBUG = False
     TESTING = False
 
+    import os
+
+    REQUESTS_TIMEOUT_SECONDS = float(os.getenv("REQUESTS_TIMEOUT_SECONDS", 5))
+
+    # blacklist microservice
+    BLACKLIST_MS_PROTO = os.getenv('BLACKLIST_MS_PROTO', 'http')
+    BLACKLIST_MS_HOST = os.getenv('BLACKLIST_MS_HOST', 'localhost')
+    BLACKLIST_MS_PORT = os.getenv('BLACKLIST_MS_PORT', 5002)
+    BLACKLIST_MS_URL = '%s://%s:%s' % (BLACKLIST_MS_PROTO, BLACKLIST_MS_HOST, BLACKLIST_MS_PORT)
+
+    # messages microservice
+    MESSAGES_MS_PROTO = os.getenv('MESSAGES_MS_PROTO', 'http')
+    MESSAGES_MS_HOST = os.getenv('MESSAGES_MS_HOST', 'localhost')
+    MESSAGES_MS_PORT = os.getenv('MESSAGES_MS_PORT', 5003)
+    MESSAGES_MS_URL = '%s://%s:%s' % (MESSAGES_MS_PROTO, MESSAGES_MS_HOST, MESSAGES_MS_PORT)
+
 
 class DebugConfig(Config):
     """
