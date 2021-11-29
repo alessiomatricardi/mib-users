@@ -381,13 +381,13 @@ paths:
         default:
           description: Error during the modification of the profile picture
   
-  /users_list/{user_id}:
+  /users/{current_user_id}/list:
     get:
       tags: [ Users ]
-      description: Get available users list for user_id
+      description: Get available users list for current_user_id
       operationId: mib.resources.users.get_users_list 
       parameters:
-        - name: user_id
+        - name: current_user_id
           description: User Unique ID
           in: path
           required: true
@@ -402,12 +402,19 @@ paths:
         default:
           description: An error occured while retrieving the users
 
-  /users/{user_id}:
+  /users/{current_user_id}/list/{user_id}:
     get:
       tags: [ Users ]
       description: Get a user by its id
       operationId: mib.resources.users.get_user #_user_details
       parameters:
+        - name: current_user_id
+          description: User Unique ID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
         - name: user_id
           description: User Unique ID
           in: path
@@ -418,18 +425,27 @@ paths:
       responses:
         200:
           description: Return user
+        401:
+          description: Unauthorized
         404:
           description: User not found
         default:
           description: An error occured while retrieving the user
   
-  /users/{user_id}/picture:
+  /users/{current_user_id}/picture/{user_id}:
     get:
       tags: [ Users ]
       description: Get a user picture by its id
       operationId: mib.resources.users.get_profile_picture 
       parameters:
         - name: user_id
+          description: User Unique ID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: current_user_id
           description: User Unique ID
           in: path
           required: true
@@ -469,6 +485,8 @@ paths:
                     type: string
                     description: "It can be failure or User not found"
                     default: 'User not found'
+        401:
+          description: Unauthorized
         default:
           description: An error occured while retrieving the user
         

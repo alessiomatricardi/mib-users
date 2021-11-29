@@ -274,8 +274,11 @@ def modify_profile_picture():
     return jsonify(response_object), 200
 
 
-def get_profile_picture(user_id):
+def get_profile_picture(current_user_id,user_id):
 
+    BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
+    REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
+    
     user = UserManager.retrieve_by_id(user_id)
 
     if user is None:
@@ -284,6 +287,36 @@ def get_profile_picture(user_id):
             'message': 'User not found',
         }
         return jsonify(response_object), 404
+    
+    current_user = UserManager.retrieve_by_id(current_user_id)
+    if current_user is None:
+        response = {'status': 'Current user not present'}
+        return jsonify(response), 404
+
+    blacklist = None
+
+    try:
+        blacklist_response = requests.get("%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(current_user_id)),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+        json_payload = blacklist_response.json()
+        if blacklist_response.status_code == 200:
+            blacklist = json.loads(json_payload['blacklist'])
+        else:
+            raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        response_object = {
+        'status': 'failure',
+        'message': 'Error in retrieving blacklist',
+        }
+        return jsonify(response_object),500
+
+    if user.id in blacklist:
+        response_object = {
+        'status': 'failure',
+        'message': 'Unauthorized',
+        }
+        return jsonify(response_object),401
 
     filename = 'default'
 
@@ -323,14 +356,14 @@ def get_profile_picture(user_id):
 
 
 # /users -> /users_list/<user_id>
-def get_users_list(user_id):
+def get_users_list(current_user_id):
     # TODO should be provided with the request
     # TODO COMMENTS
     # blacklisted = [3, 4]
     BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
     REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
-    user = UserManager.retrieve_by_id(user_id)
+    user = UserManager.retrieve_by_id(current_user_id)
 
     if user is None:
         response_object = {
@@ -342,7 +375,7 @@ def get_users_list(user_id):
     blacklist = None
 
     try:
-        blacklist_response = requests.get("%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(user_id)),
+        blacklist_response = requests.get("%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(current_user_id)),
                                 timeout=REQUESTS_TIMEOUT_SECONDS)
         json_payload = blacklist_response.json()
         if blacklist_response.status_code == 200:
@@ -358,7 +391,7 @@ def get_users_list(user_id):
         return jsonify(response_object),500
 
     
-    users = UserManager.retrieve_users_by_blacklist(user_id, blacklist)
+    users = UserManager.retrieve_users_by_blacklist(current_user_id, blacklist)
 
     users_json = [user.serialize() for user in users]
 
@@ -372,17 +405,50 @@ def get_users_list(user_id):
 
 
 # /users/<user_id> or /profile
-def get_user(user_id):
+def get_user(current_user_id,user_id):
     """
     Get a user by its current id.
 
     :param user_id: user it
     :return: json response
     """
+    BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
+    REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
+
     user = UserManager.retrieve_by_id(user_id)
     if user is None:
         response = {'status': 'User not present'}
         return jsonify(response), 404
+
+    current_user = UserManager.retrieve_by_id(current_user_id)
+    if current_user is None:
+        response = {'status': 'Current user not present'}
+        return jsonify(response), 404
+
+    blacklist = None
+
+    try:
+        blacklist_response = requests.get("%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(current_user_id)),
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+        json_payload = blacklist_response.json()
+        if blacklist_response.status_code == 200:
+            blacklist = json.loads(json_payload['blacklist'])
+        else:
+            raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        response_object = {
+        'status': 'failure',
+        'message': 'Error in retrieving blacklist',
+        }
+        return jsonify(response_object),500
+
+    if user.id in blacklist:
+        response_object = {
+        'status': 'failure',
+        'message': 'Unauthorized',
+        }
+        return jsonify(response_object),401
 
     return jsonify(user.serialize()), 200
 
