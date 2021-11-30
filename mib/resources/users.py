@@ -449,8 +449,13 @@ def get_user(current_user_id,user_id):
                 'message': 'Unauthorized',
             }
             return jsonify(response_object), 401
-
-    return jsonify(user.serialize()), 200
+    
+    response_object = {
+        'status': 'success',
+        'message': 'User retrivied',
+        'user' : user.serialize()
+    }
+    return jsonify(response_object), 200
 
 
 # TODO controllare se serve
