@@ -402,7 +402,7 @@ def get_users_list(current_user_id):
     return jsonify(response_object), 200
 
 
-# /users/<user_id> or /profile
+# /users/<user_id> or /profile -> /users/<current_user_id>/list/<user_id>
 def get_user(current_user_id,user_id):
     """
     Get a user by its current id.
