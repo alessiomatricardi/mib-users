@@ -10,7 +10,7 @@ from mib.dao.user_manager import UserManager
 from mib.models.user import User
 from PIL import Image
 from io import BytesIO
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
 REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
@@ -143,6 +143,7 @@ def modify_password():
         }
         return jsonify(response_object), 404
     
+
     # check if the old password is the same of the one stored in the database
     if not check_password_hash(user.password, old_password):
         response_object = {

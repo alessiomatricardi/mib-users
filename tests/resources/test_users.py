@@ -1,5 +1,7 @@
 from .view_test import ViewTest
 from faker import Faker
+import responses
+from mib import create_app
 
 
 class TestUsers(ViewTest):
@@ -16,7 +18,7 @@ class TestUsers(ViewTest):
         assert rv.status_code == 202
     '''
 
-    def test_register_and_get_user(self):
+    def test_01_register_and_get(self):
         # get a non-existent user
         rv = self.client.get('/users/0')
         assert rv.status_code == 404
@@ -36,8 +38,9 @@ class TestUsers(ViewTest):
         #user = self.login_test_user()
         rv = self.client.get('/users/%s/list/%s'% (str(test_id['id']), str(test_id['id'])))
         assert rv.status_code == 200
+        
     
-    def test_get_user_by_email(self):
+    def test_02_get_user_by_email(self):
 
         # get a non-existent user with faked email
         rv = self.client.get('/user_email/%s' % TestUsers.faker.email())
@@ -47,12 +50,130 @@ class TestUsers(ViewTest):
         rv = self.client.get('/user_email/%s' % user.email)
         assert rv.status_code == 200
 
-    def test_modify_user_data(self):
-        pass
+
+    def test_03_modify_user_data(self):
+        
+        # retrieve Barbara Verdi, our test dummy
+        rv = self.client.get('/user_email/prova4@mail.com')
+        test_id = rv.get_json()
+        assert rv.status_code == 200
+
+        # personal data modification variables
+        json_user_success = { 'id' : test_id['id'] , 'firstname': 'Barbaro', 'lastname': 'Verde', 'date_of_birth': '1991-06-26'} 
+        json_user_failure = { 'id' : 200 , 'firstname': 'Barbara', 'lastname': 'Verdi', 'date_of_birth': '1990-05-25'} 
+        
+        # try with wrong id and expect a 404 response
+        rv = self.client.post('/profile/data', json = json_user_failure)
+        self.assertEqual(rv.status_code, 404)
+
+        # try with correct id 
+        rv = self.client.post('/profile/data', json = json_user_success)
+        self.assertEqual(rv.status_code, 200)
+
+        # login with Barbara
+        json_login = { 'email' : 'prova4@mail.com' , 'password': 'prova123'} 
+        rv = self.client.post('/login', json = json_login)
+        self.assertEqual(rv.status_code, 200)
+  
+
+        # password modification variables
+        json_user_password_success= { 'id' : test_id['id']  , 'old_password': 'prova123', 'new_password': 'abcd1234', 'repeat_new_password': 'abcd1234'} 
+        json_user_password_wrong_id= { 'id' : 200 , 'old_password': 'prova123', 'new_password': 'abcd1234', 'repeat_new_password': 'abcd1234'}
+        json_user_password_wrong_old_pwd= { 'id' : test_id['id']  , 'old_password': 'prova12345', 'new_password': 'abcd1234', 'repeat_new_password': 'abcd1234'}
+        json_user_password_unchanged= { 'id' : test_id['id']  , 'old_password': 'prova123', 'new_password': 'prova123', 'repeat_new_password': 'abcd1234'}
+        json_user_password_not_corresponding= { 'id' : test_id['id']  , 'old_password': 'prova123', 'new_password': 'abcd1234', 'repeat_new_password': 'wrongpwd'}
    
-    def test_get_recipients_list(self):
+        # passing wrong id
+        rv = self.client.post('/profile/password', json = json_user_password_wrong_id)
+        self.assertEqual(rv.status_code, 404)
+
+        # passing wrong old password
+        rv = self.client.post('/profile/password', json = json_user_password_wrong_old_pwd)
+        self.assertEqual(rv.status_code, 401)
+
+        # passing the same password as the new one
+        rv = self.client.post('/profile/password', json = json_user_password_unchanged)
+        self.assertEqual(rv.status_code, 409)
+
+        # repeating wrongly the new password 
+        rv = self.client.post('/profile/password', json = json_user_password_not_corresponding)
+        self.assertEqual(rv.status_code, 403)
+
+        # passing everything as it should be
+        rv = self.client.post('/profile/password', json = json_user_password_success)
+        self.assertEqual(rv.status_code, 200)
+
+        # changing content filter test variables
+        json_content_filter_enabling = {'id': test_id['id'] , 'content_filter': True}
+        json_content_filter_disabling = {'id': test_id['id'] , 'content_filter': False}
+        json_content_filter_wrong_id = {'id': 200 , 'content_filter': True}
+
+        # passing wrong id
+        rv = self.client.post('/profile/content_filter', json = json_content_filter_wrong_id)
+        self.assertEqual(rv.status_code, 404)
+        
+        # enabling content filter
+        rv = self.client.post('/profile/content_filter', json = json_content_filter_enabling)
+        self.assertEqual(rv.status_code, 200)
+
+        # disabling content filter
+        rv = self.client.post('/profile/content_filter', json = json_content_filter_disabling)
+        self.assertEqual(rv.status_code, 200)
+
+
+    def test_04_pictures(self):
+
+        # retrieve Barbara Verdi, our test dummy
+        rv = self.client.get('/user_email/prova4@mail.com')
+        test_id = rv.get_json()
+        assert rv.status_code == 200
+
+        # modify profile picture test variables
+        json_pfp_wrong_id = {'id': 200, 'image': 'whatever'}
+        rv = self.client.post('/profile/picture', json = json_pfp_wrong_id)
+        self.assertEqual(rv.status_code, 404)
+
+        #TODO: add testing for the rest of /profile/picture updating Barbara pfp
+
+        # retrieving a profile picture with a wrong id
+        rv = self.client.get('/users/200/picture/200')
+        self.assertEqual(rv.status_code, 404)
+
+        #TODO: add testing for the rest of /profile/<current_user_id>/picture/<current_user_id> for retrieving Barbara pfp
+
+    @responses.activate
+    def test_05_get_recipients_list(self):
         # required mocking blacklist
-        pass
+
+        # retrieve Barbara Verdi, our test dummy
+        rv = self.client.get('/user_email/prova4@mail.com')
+        test_id = rv.get_json()
+        assert rv.status_code == 200
+
+        # retrieving recipients list for a non-existing user
+        rv = self.client.get('/users/200/list')
+        self.assertEqual(rv.status_code, 404)
+
+        # retrieving recipients list without having the Blacklist microservice mocked
+        rv = self.client.get('/users/%s/list' % (str(test_id['id'])))
+        self.assertEqual(rv.status_code, 500)
+
+        # mocking
+        app = create_app()
+
+        BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
+        REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
+
+        responses.add(responses.GET, "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(test_id['id'])),
+                  json={ "blacklist": "[]", 
+                         "message": "Blacklist successfully retrieved", 
+                        "status": "success"
+                       }, 
+                       status=200)
+
+        rv = self.client.get('/users/%s/list' % (str(test_id['id'])))
+        self.assertEqual(rv.status_code, 200)
+        print(rv.get_json())
 
     def test_get_arbitrary_user_info(self):
         # required mocking blacklist
