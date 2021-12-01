@@ -32,13 +32,14 @@ class TestUsers(ViewTest):
         self.assertEqual(rv.status_code, 201)
 
         # retrieving the user by her email to check her id
-        rv = self.client.get('/user_email/prova4@mail.com')
+        rv = self.client.get('/users/prova4@mail.com')
         test_id = rv.get_json()
         assert rv.status_code == 200
 
         # get an existent user
         #user = self.login_test_user()
-        rv = self.client.get('/users/%s/list/%s'% (str(test_id['id']), str(test_id['id'])))
+        data = {'requester_id':test_id['id']}
+        rv = self.client.get('/users/%s'% (str(test_id['id'])), json=data)
         assert rv.status_code == 200
         
     
@@ -51,20 +52,20 @@ class TestUsers(ViewTest):
         assert rv.status_code == 404
         # get an existent user
         user = self.login_test_user()
-        rv = self.client.get('/user_email/%s' % user.email)
+        rv = self.client.get('/users/%s' % user.email)
         assert rv.status_code == 200
 
 
     def test_03_modify_user_data(self):
         
         # retrieve Barbara Verdi, our test dummy
-        rv = self.client.get('/user_email/prova4@mail.com')
+        rv = self.client.get('/users/prova4@mail.com')
         test_id = rv.get_json()
         assert rv.status_code == 200
 
         # personal data modification variables
-        json_user_success = { 'id' : test_id['id'] , 'firstname': 'Barbaro', 'lastname': 'Verde', 'date_of_birth': '1991-06-26'} 
-        json_user_failure = { 'id' : 200 , 'firstname': 'Barbara', 'lastname': 'Verdi', 'date_of_birth': '1990-05-25'} 
+        json_user_success = { 'requester_id' : test_id['id'] , 'firstname': 'Barbaro', 'lastname': 'Verde', 'date_of_birth': '1991-06-26'} 
+        json_user_failure = { 'requester_id' : 200 , 'firstname': 'Barbara', 'lastname': 'Verdi', 'date_of_birth': '1990-05-25'} 
         
         # try with wrong id and expect a 404 response
         rv = self.client.post('/profile/data', json = json_user_failure)
@@ -81,11 +82,11 @@ class TestUsers(ViewTest):
   
 
         # password modification variables
-        json_user_password_success= { 'id' : test_id['id']  , 'old_password': 'prova123', 'new_password': 'abcd1234', 'repeat_new_password': 'abcd1234'} 
-        json_user_password_wrong_id= { 'id' : 200 , 'old_password': 'prova123', 'new_password': 'abcd1234', 'repeat_new_password': 'abcd1234'}
-        json_user_password_wrong_old_pwd= { 'id' : test_id['id']  , 'old_password': 'prova12345', 'new_password': 'abcd1234', 'repeat_new_password': 'abcd1234'}
-        json_user_password_unchanged= { 'id' : test_id['id']  , 'old_password': 'prova123', 'new_password': 'prova123', 'repeat_new_password': 'abcd1234'}
-        json_user_password_not_corresponding= { 'id' : test_id['id']  , 'old_password': 'prova123', 'new_password': 'abcd1234', 'repeat_new_password': 'wrongpwd'}
+        json_user_password_success= { 'requester_id' : test_id['id']  , 'old_password': 'prova123', 'new_password': 'abcd1234', 'repeat_new_password': 'abcd1234'} 
+        json_user_password_wrong_id= { 'requester_id' : 200 , 'old_password': 'prova123', 'new_password': 'abcd1234', 'repeat_new_password': 'abcd1234'}
+        json_user_password_wrong_old_pwd= { 'requester_id' : test_id['id']  , 'old_password': 'prova12345', 'new_password': 'abcd1234', 'repeat_new_password': 'abcd1234'}
+        json_user_password_unchanged= { 'requester_id' : test_id['id']  , 'old_password': 'prova123', 'new_password': 'prova123', 'repeat_new_password': 'abcd1234'}
+        json_user_password_not_corresponding= { 'requester_id' : test_id['id']  , 'old_password': 'prova123', 'new_password': 'abcd1234', 'repeat_new_password': 'wrongpwd'}
    
         # passing wrong id
         rv = self.client.post('/profile/password', json = json_user_password_wrong_id)
@@ -108,9 +109,9 @@ class TestUsers(ViewTest):
         self.assertEqual(rv.status_code, 200)
 
         # changing content filter test variables
-        json_content_filter_enabling = {'id': test_id['id'] , 'content_filter': True}
-        json_content_filter_disabling = {'id': test_id['id'] , 'content_filter': False}
-        json_content_filter_wrong_id = {'id': 200 , 'content_filter': True}
+        json_content_filter_enabling = {'requester_id': test_id['id'] , 'content_filter': True}
+        json_content_filter_disabling = {'requester_id': test_id['id'] , 'content_filter': False}
+        json_content_filter_wrong_id = {'requester_id': 200 , 'content_filter': True}
 
         # passing wrong id
         rv = self.client.post('/profile/content_filter', json = json_content_filter_wrong_id)
@@ -128,19 +129,19 @@ class TestUsers(ViewTest):
     def test_04_pictures(self):
 
         # retrieve Barbara Verdi, our test dummy
-        rv = self.client.get('/user_email/prova4@mail.com')
+        rv = self.client.get('/users/prova4@mail.com')
         test_id = rv.get_json()
         assert rv.status_code == 200
 
         # modify profile picture test variables
-        json_pfp_wrong_id = {'id': 200, 'image': 'whatever'}
+        json_pfp_wrong_id = {'requester_id': 200, 'image': 'whatever'}
         rv = self.client.post('/profile/picture', json = json_pfp_wrong_id)
         self.assertEqual(rv.status_code, 404)
 
         #TODO: add testing for the rest of /profile/picture updating Barbara pfp
 
         # retrieving a profile picture with a wrong id
-        rv = self.client.get('/users/200/picture/200')
+        rv = self.client.get('/users/200', json = {'requester_id': 200})
         self.assertEqual(rv.status_code, 404)
 
         #TODO: add testing for the rest of /profile/<current_user_id>/picture/<current_user_id> for retrieving Barbara pfp
@@ -150,16 +151,16 @@ class TestUsers(ViewTest):
         # required mocking blacklist
 
         # retrieve Barbara Verdi, our test dummy
-        rv = self.client.get('/user_email/prova4@mail.com')
+        rv = self.client.get('/users/prova4@mail.com')
         test_id = rv.get_json()
         assert rv.status_code == 200
 
         # retrieving recipients list for a non-existing user
-        rv = self.client.get('/users/200/list')
+        rv = self.client.get('/users', json = {'requester_id': 200})
         self.assertEqual(rv.status_code, 404)
 
         # retrieving recipients list without having the Blacklist microservice mocked
-        rv = self.client.get('/users/%s/list' % (str(test_id['id'])))
+        rv = self.client.get('/users',  json = {'requester_id': test_id['id']})
         self.assertEqual(rv.status_code, 500)
 
         # mocking
@@ -175,7 +176,7 @@ class TestUsers(ViewTest):
                        }, 
                        status=200)
 
-        rv = self.client.get('/users/%s/list' % (str(test_id['id'])))
+        rv = self.client.get('/users',  json = {'requester_id': test_id['id']})
         self.assertEqual(rv.status_code, 200)
         print(rv.get_json())
 
