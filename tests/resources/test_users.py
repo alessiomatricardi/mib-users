@@ -33,12 +33,13 @@ class TestUsers(ViewTest):
 
         # retrieving the user by her email to check her id
         rv = self.client.get('/users/prova4@mail.com')
-        test_id = rv.get_json()
+
         assert rv.status_code == 200
+        test_id = rv.get_json()['user']
 
         # get an existent user
         #user = self.login_test_user()
-        data = {'requester_id':test_id['id']}
+        data = {'requester_id' : test_id['id']}
         rv = self.client.get('/users/%s'% (str(test_id['id'])), json=data)
         assert rv.status_code == 200
         
@@ -60,19 +61,20 @@ class TestUsers(ViewTest):
         
         # retrieve Barbara Verdi, our test dummy
         rv = self.client.get('/users/prova4@mail.com')
-        test_id = rv.get_json()
+        
         assert rv.status_code == 200
+        test_id = rv.get_json()['user']
 
         # personal data modification variables
         json_user_success = { 'requester_id' : test_id['id'] , 'firstname': 'Barbaro', 'lastname': 'Verde', 'date_of_birth': '1991-06-26'} 
-        json_user_failure = { 'requester_id' : 200 , 'firstname': 'Barbara', 'lastname': 'Verdi', 'date_of_birth': '1990-05-25'} 
+        json_user_failure = { 'requester_id' : 200, 'firstname': 'Barbara', 'lastname': 'Verdi', 'date_of_birth': '1990-05-25'} 
         
         # try with wrong id and expect a 404 response
-        rv = self.client.post('/profile/data', json = json_user_failure)
+        rv = self.client.patch('/profile/data', json = json_user_failure)
         self.assertEqual(rv.status_code, 404)
 
         # try with correct id 
-        rv = self.client.post('/profile/data', json = json_user_success)
+        rv = self.client.patch('/profile/data', json = json_user_success)
         self.assertEqual(rv.status_code, 200)
 
         # login with Barbara
@@ -89,23 +91,23 @@ class TestUsers(ViewTest):
         json_user_password_not_corresponding= { 'requester_id' : test_id['id']  , 'old_password': 'prova123', 'new_password': 'abcd1234', 'repeat_new_password': 'wrongpwd'}
    
         # passing wrong id
-        rv = self.client.post('/profile/password', json = json_user_password_wrong_id)
+        rv = self.client.patch('/profile/password', json = json_user_password_wrong_id)
         self.assertEqual(rv.status_code, 404)
 
         # passing wrong old password
-        rv = self.client.post('/profile/password', json = json_user_password_wrong_old_pwd)
+        rv = self.client.patch('/profile/password', json = json_user_password_wrong_old_pwd)
         self.assertEqual(rv.status_code, 401)
 
         # passing the same password as the new one
-        rv = self.client.post('/profile/password', json = json_user_password_unchanged)
-        self.assertEqual(rv.status_code, 409)
+        rv = self.client.patch('/profile/password', json = json_user_password_unchanged)
+        self.assertEqual(rv.status_code, 400)
 
         # repeating wrongly the new password 
-        rv = self.client.post('/profile/password', json = json_user_password_not_corresponding)
-        self.assertEqual(rv.status_code, 403)
+        rv = self.client.patch('/profile/password', json = json_user_password_not_corresponding)
+        self.assertEqual(rv.status_code, 400)
 
         # passing everything as it should be
-        rv = self.client.post('/profile/password', json = json_user_password_success)
+        rv = self.client.patch('/profile/password', json = json_user_password_success)
         self.assertEqual(rv.status_code, 200)
 
         # changing content filter test variables
@@ -114,15 +116,15 @@ class TestUsers(ViewTest):
         json_content_filter_wrong_id = {'requester_id': 200 , 'content_filter': True}
 
         # passing wrong id
-        rv = self.client.post('/profile/content_filter', json = json_content_filter_wrong_id)
+        rv = self.client.patch('/profile/content_filter', json = json_content_filter_wrong_id)
         self.assertEqual(rv.status_code, 404)
         
         # enabling content filter
-        rv = self.client.post('/profile/content_filter', json = json_content_filter_enabling)
+        rv = self.client.patch('/profile/content_filter', json = json_content_filter_enabling)
         self.assertEqual(rv.status_code, 200)
 
         # disabling content filter
-        rv = self.client.post('/profile/content_filter', json = json_content_filter_disabling)
+        rv = self.client.patch('/profile/content_filter', json = json_content_filter_disabling)
         self.assertEqual(rv.status_code, 200)
 
 
@@ -130,12 +132,13 @@ class TestUsers(ViewTest):
 
         # retrieve Barbara Verdi, our test dummy
         rv = self.client.get('/users/prova4@mail.com')
-        test_id = rv.get_json()
+        
         assert rv.status_code == 200
+        test_id = rv.get_json()['user']
 
         # modify profile picture test variables
         json_pfp_wrong_id = {'requester_id': 200, 'image': 'whatever'}
-        rv = self.client.post('/profile/picture', json = json_pfp_wrong_id)
+        rv = self.client.put('/profile/picture', json = json_pfp_wrong_id)
         self.assertEqual(rv.status_code, 404)
 
         #TODO: add testing for the rest of /profile/picture updating Barbara pfp
@@ -152,8 +155,9 @@ class TestUsers(ViewTest):
 
         # retrieve Barbara Verdi, our test dummy
         rv = self.client.get('/users/prova4@mail.com')
-        test_id = rv.get_json()
+        
         assert rv.status_code == 200
+        test_id = rv.get_json()['user']
 
         # retrieving recipients list for a non-existing user
         rv = self.client.get('/users', json = {'requester_id': 200})
