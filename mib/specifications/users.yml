@@ -607,19 +607,6 @@ paths:
                     description: "Human readable result"
                   user:
                     $ref : '#/components/schemas/User'
-        401:
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    description: "It can be failure or success"
-                  description:
-                    type: string
-                    description: "Human readable result"
         404:
           description: Searched or searching user not found
           content:
