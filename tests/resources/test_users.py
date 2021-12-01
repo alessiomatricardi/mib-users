@@ -1,5 +1,7 @@
 from .view_test import ViewTest
 from faker import Faker
+import json
+import responses
 
 
 class TestUsers(ViewTest):
@@ -18,18 +20,38 @@ class TestUsers(ViewTest):
 
     def test_get_user_by_id(self):
         # get a non-existent user
-        rv = self.client.get('/users/0')
+        data = {'requester_id': 1}
+        rv = self.client.get('/users/0', json=data)
         assert rv.status_code == 404
         # get an existent user
         user = self.login_test_user()
-        rv = self.client.get('/users/%d' % user.id)
+
+        BLACKLIST_ENDPOINT = self.client.config['BLACKLIST_MS_URL']
+
+        responses.add(responses.GET,
+                      "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, user.id, 1),
+                      json={'status': 'Current user not present'},
+                      status=200)
+
+        rv = self.client.get('/users/%d' % user.id, json=data)
         assert rv.status_code == 200
 
     def test_get_user_by_email(self):
         # get a non-existent user with faked email
-        rv = self.client.get('/user_email/%s' % TestUsers.faker.email())
+        data = {'requester_id': 1}
+        rv = self.client.get('/users/%s' % TestUsers.faker.email(),
+                             json=data)
         assert rv.status_code == 404
         # get an existent user
         user = self.login_test_user()
-        rv = self.client.get('/user_email/%s' % user.email)
+
+        BLACKLIST_ENDPOINT = self.client.config['BLACKLIST_MS_URL']
+
+        responses.add(responses.GET,
+                      "%s/blacklist/%s" %
+                      (BLACKLIST_ENDPOINT, user.id, 1),
+                      json={'status': 'Current user not present'},
+                      status=200)
+
+        rv = self.client.get('/users/%s' % user.email, json=data)
         assert rv.status_code == 200

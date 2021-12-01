@@ -29,7 +29,7 @@ def login(auth):
         return jsonify(response), 401
 
     response = {
-        'status' : 'failure',
+        'status' : 'success',
         'description' : 'Logged in',
         'user': user.serialize()
     }
