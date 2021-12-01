@@ -33,7 +33,7 @@ class TestUsers(ViewTest):
         BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
 
         responses.add(responses.GET,
-                      "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(user.id), "1"),
+                      "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(user.id)),
                       json={'status': 'Current user not present'},
                       status=200)
 
@@ -56,7 +56,7 @@ class TestUsers(ViewTest):
 
         responses.add(responses.GET,
                       "%s/blacklist/%s" %
-                      (BLACKLIST_ENDPOINT, str(user.id), "1"),
+                      (BLACKLIST_ENDPOINT, str(user.id)),
                       json={'status': 'Current user not present'},
                       status=200)
 

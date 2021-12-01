@@ -335,9 +335,9 @@ def get_user_picture(user_id):
     if user.id in blacklist:
         response_object = {
             'status': 'failure',
-            'description': 'Unauthorized',
+            'description': 'Forbidden',
         }
-        return jsonify(response_object), 401
+        return jsonify(response_object), 403
 
     filename = 'default'
 
@@ -479,9 +479,9 @@ def get_user_by_id(user_id):
         if user.id in blacklist:
             response_object = {
                 'status': 'failure',
-                'description': 'Unauthorized',
+                'description': 'Forbidden',
             }
-            return jsonify(response_object), 401
+            return jsonify(response_object), 403
 
     response_object = {
         'status': 'success',
@@ -546,9 +546,9 @@ def get_user_by_email(user_email):
         if user.id in blacklist:
             response_object = {
                 'status': 'failure',
-                'description': 'Unauthorized',
+                'description': 'Forbidden',
             }
-            return jsonify(response_object), 401
+            return jsonify(response_object), 403
 
     response_object = {
         'status': 'success',

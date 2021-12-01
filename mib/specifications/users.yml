@@ -482,8 +482,8 @@ paths:
                     description: "Human readable result"
                   user:
                     $ref : '#/components/schemas/User'
-        401:
-          description: Unauthorized
+        403:
+          description: Forbidden
           content:
             application/json:
               schema:
@@ -563,8 +563,8 @@ paths:
                   description:
                     type: string
                     description: "Human readable result"
-        401:
-          description: Unauthorized
+        403:
+          description: Forbidden
           content:
             application/json:
               schema:
