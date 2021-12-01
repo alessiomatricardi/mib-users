@@ -2,6 +2,7 @@ from .view_test import ViewTest
 from faker import Faker
 import json
 import responses
+from mib import create_app
 
 
 class TestUsers(ViewTest):
@@ -26,10 +27,13 @@ class TestUsers(ViewTest):
         # get an existent user
         user = self.login_test_user()
 
-        BLACKLIST_ENDPOINT = self.client.config['BLACKLIST_MS_URL']
+        # mocking
+        app = create_app()
+
+        BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
 
         responses.add(responses.GET,
-                      "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, user.id, 1),
+                      "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(user.id), "1"),
                       json={'status': 'Current user not present'},
                       status=200)
 
@@ -45,11 +49,14 @@ class TestUsers(ViewTest):
         # get an existent user
         user = self.login_test_user()
 
-        BLACKLIST_ENDPOINT = self.client.config['BLACKLIST_MS_URL']
+        # mocking
+        app = create_app()
+
+        BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
 
         responses.add(responses.GET,
                       "%s/blacklist/%s" %
-                      (BLACKLIST_ENDPOINT, user.id, 1),
+                      (BLACKLIST_ENDPOINT, str(user.id), "1"),
                       json={'status': 'Current user not present'},
                       status=200)
 
