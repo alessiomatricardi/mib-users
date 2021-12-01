@@ -55,7 +55,7 @@ paths:
           description: Error during creation of the user
 
   /unregister:
-    post:
+    put:
       summary: Unregister an user
       tags:
         - Users
