@@ -24,8 +24,7 @@ class TestAuth(ViewTest):
         json_response = response.json
 
         assert response.status_code == 401
-        assert json_response["authentication"] == 'failure'
-        assert json_response['user'] is None
+        assert json_response["status"] == 'failure'
 
 
 

@@ -1,5 +1,6 @@
 from .view_test import ViewTest
 from faker import Faker
+import json
 import responses
 from mib import create_app
 
@@ -20,7 +21,8 @@ class TestUsers(ViewTest):
 
     def test_01_register_and_get(self):
         # get a non-existent user
-        rv = self.client.get('/users/0')
+        data = {'requester_id': 1}
+        rv = self.client.get('/users/0', json=data)
         assert rv.status_code == 404
 
         # registering a new user
@@ -43,7 +45,9 @@ class TestUsers(ViewTest):
     def test_02_get_user_by_email(self):
 
         # get a non-existent user with faked email
-        rv = self.client.get('/user_email/%s' % TestUsers.faker.email())
+        data = {'requester_id': 1}
+        rv = self.client.get('/users/%s' % TestUsers.faker.email(),
+                             json=data)
         assert rv.status_code == 404
         # get an existent user
         user = self.login_test_user()
