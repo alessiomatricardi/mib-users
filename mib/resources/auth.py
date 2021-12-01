@@ -15,21 +15,22 @@ def login(auth):
     # user doesn't exist
     if user is None:
         response = {
-            'authentication': 'failure',
-            'user': None
+            'status' : 'failure',
+            'description' : 'User not found'
         }
         return jsonify(response), 404
 
     # user no longer active or auth failed
     if not user.is_active or not user.authenticate(auth['password']):
         response = {
-            'authentication': 'failure',
-            'user': None
+            'status' : 'failure',
+            'description' : 'Invalid credentials'
         }
         return jsonify(response), 401
 
     response = {
-        'authentication': 'success',
+        'status' : 'success',
+        'description' : 'Logged in',
         'user': user.serialize()
     }
     return jsonify(response), 200

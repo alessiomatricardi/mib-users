@@ -15,37 +15,41 @@ from werkzeug.security import check_password_hash
 BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
 REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
+
 def register():
     """
     This method allows the registration of a new user.
     Called by /register.
-    if it succeeds return {'user': user.serialize(), 'status': 'success', 'message': 'Successfully registered'}
-    if it fails return{'status': 'Already present'}
+    if it succeeds return {'user': user.serialize(), 'status': 'success', 'description': 'Successfully registered'}
+    if it fails return{'status': 'failure', 'description' : 'Already present'}
     """
-    post_data = request.get_json()
-    email = post_data.get('email')
-    password = post_data.get('password')
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
 
     searched_user = UserManager.retrieve_by_email(email)
+
     if searched_user is not None:
         return jsonify({
-            'status': 'Already present'
+            'status': 'failure',
+            'descrition': 'Already present'
         }), 200
 
     user = User()
-    date_of_birth = datetime.datetime.strptime(post_data.get('date_of_birth'),
-                                          '%Y-%m-%d')
+
+    date_of_birth = datetime.datetime.strptime(data.get('date_of_birth'),
+                                               '%Y-%m-%d')
     user.set_email(email)
     user.set_password(password)
-    user.set_first_name(post_data.get('firstname'))
-    user.set_last_name(post_data.get('lastname'))
+    user.set_first_name(data.get('firstname'))
+    user.set_last_name(data.get('lastname'))
     user.set_birthday(date_of_birth)
     UserManager.create_user(user)
 
     response_object = {
         'user': user.serialize(),
         'status': 'success',
-        'message': 'Successfully registered',
+        'description': 'Successfully registered',
     }
 
     return jsonify(response_object), 201
@@ -55,19 +59,19 @@ def unregister():
     """
     Unregister the user.
     Called by /unregister.
-    if it fails return {'status': 'success', 'message': 'Successfully unregistered'}
-    if it fails return {'status': 'failure', 'message': 'user not found'} or {'status': 'failure','message': 'Unauthorized'}
+    if it fails return {'status': 'success', 'description': 'Successfully unregistered'}
+    if it fails return {'status': 'failure', 'description': 'user not found'} or {'status': 'failure','description': 'Unauthorized'}
     """
-    post_data = request.get_json()
-    id = post_data.get('id')
-    password = post_data.get('password')
+    data = request.get_json()
+    id = data.get('requester_id')
+    password = data.get('password')
 
     user = UserManager.retrieve_by_id(id)
 
     if user is None:
         response_object = {
             'status': 'failure',
-            'message': 'User not found',
+            'description': 'User not found',
         }
         return jsonify(response_object), 404
 
@@ -77,13 +81,13 @@ def unregister():
         UserManager.update_user(user)
         response_object = {
             'status': 'success',
-            'message': 'Successfully unregistered',
+            'description': 'Successfully unregistered',
         }
         return jsonify(response_object), 200
     else:
         response_object = {
             'status': 'failure',
-            'message': 'Unauthorized',
+            'description': 'Unauthorized',
         }
         return jsonify(response_object), 401
 
@@ -92,31 +96,33 @@ def modify_data():
     """
     Modify personal data of the user.
     Called by /profile/data
-    if it succeeds return {'status': 'success','message': 'Modified'}
-    if it fails return {'status': 'failure','message': 'User not found'}
+    if it succeeds return {'status': 'success','description': 'Modified'}
+    if it fails return {'status': 'failure','description': 'User not found'}
     """
-    post_data = request.get_json()
-    id = post_data.get('id')
-    firstname = post_data.get('firstname')
-    lastname = post_data.get('lastname')
-    date_of_birth = post_data.get('date_of_birth')
+    data = request.get_json()
+    id = data.get('requester_id')
+    firstname = data.get('firstname')
+    lastname = data.get('lastname')
+    date_of_birth = data.get('date_of_birth')
 
     user = UserManager.retrieve_by_id(id)
 
     if user is None:
         response_object = {
             'status': 'failure',
-            'message': 'User not found',
+            'description': 'User not found',
         }
         return jsonify(response_object), 404
-    
+
     user.firstname = firstname
     user.lastname = lastname
     user.date_of_birth = datetime.datetime.strptime(date_of_birth, '%Y-%m-%d')
+
     UserManager.update_user(user)
+
     response_object = {
         'status': 'success',
-        'message': 'Modified',
+        'description': 'Modified',
     }
     return jsonify(response_object), 200
 
@@ -125,29 +131,29 @@ def modify_password():
     """
     Used to modify password 
     Called by /profile/password
-    if it succeeds return {'status': 'success','message': 'Modified'}
-    if it fails return {'status': 'failure','message': 'User not found'}
+    if it succeeds return {'status': 'success','description': 'Modified'}
+    if it fails return {'status': 'failure','description': 'User not found'}
     """
-    post_data = request.get_json()
-    id = post_data.get('id')
-    old_password = post_data.get('old_password')
-    new_password = post_data.get('new_password')
-    repeat_new_password = post_data.get('repeat_new_password')
+    data = request.get_json()
+    id = data.get('requester_id')
+    old_password = data.get('old_password')
+    new_password = data.get('new_password')
+    repeat_new_password = data.get('repeat_new_password')
 
     user = UserManager.retrieve_by_id(id)
 
     if user is None:
         response_object = {
             'status': 'failure',
-            'message': 'User not found',
+            'description': 'User not found',
         }
         return jsonify(response_object), 404
-    
-    # check if the old password is the same of the one stored in the database
+
+    # check that the actual password is right
     if not check_password_hash(user.password, old_password):
         response_object = {
             'status': 'failure',
-            'message': 'Unauthorized',
+            'description': 'Unauthorized',
         }
         return jsonify(response_object), 401
 
@@ -155,24 +161,24 @@ def modify_password():
     if check_password_hash(user.password, new_password):
         response_object = {
             'status': 'failure',
-            'message': 'Password not changed',
+            'description': 'Password not changed',
         }
-        return jsonify(response_object), 409
+        return jsonify(response_object), 400
 
     # check that the new password and the repeated new password are different
     if new_password != repeat_new_password:
         response_object = {
             'status': 'failure',
-            'message': 'New and repeated passwords are different',
+            'description': 'New and repeated passwords are different',
         }
-        return jsonify(response_object), 403
-    
+        return jsonify(response_object), 400
+
     user.set_password(new_password)
     UserManager.update_user(user)
-    
+
     response_object = {
         'status': 'success',
-        'message': 'Modified',
+        'description': 'Modified',
     }
     return jsonify(response_object), 200
 
@@ -181,32 +187,32 @@ def modify_content_filter():
     """
     Used to enable/disable content_filter 
     Called by /profile/content_filter
-    if it succeds, returns {'status': 'success','message': 'Modified', 'enabled': True/False}
-    if it fails return {'status': 'failure','message': 'User not found'}
+    if it succeds, returns {'status': 'success','description': 'Modified', 'enabled': True/False}
+    if it fails return {'status': 'failure','description': 'User not found'}
     """
-    post_data = request.get_json()
-    id = post_data.get('id')
-    content_filter = post_data.get('content_filter')
+    data = request.get_json()
+    id = data.get('requester_id')
+    content_filter = data.get('content_filter')
 
     user = UserManager.retrieve_by_id(id)
 
     if user is None:
         response_object = {
             'status': 'failure',
-            'message': 'User not found',
+            'description': 'User not found',
         }
         return jsonify(response_object), 404
-    
+
     user.content_filter_enabled = content_filter
     UserManager.update_user(user)
-    
+
     response_object = {
         'status': 'success',
-        'message': 'Modified',
+        'description': 'Modified',
         'enabled': content_filter
     }
     return jsonify(response_object), 200
-    
+
 
 def modify_profile_picture():
     '''
@@ -219,104 +225,119 @@ def modify_profile_picture():
 
     print(json.dumps(data))
     '''
-
     """
     Used to modify profile picture 
     Called by /profile/picture
-    if it succeds return {'status': 'success','message': 'Modified'}
-    if it fails return {'status': 'failure','message': 'User not found'}
+    if it succeds return {'status': 'success','description': 'Modified'}
+    if it fails return {'status': 'failure','description': 'User not found'}
     """
-    post_data = request.get_json()
-    id = post_data.get('id')
-    img_base64 = post_data.get('image')
+    data = request.get_json()
+    id = data.get('requester_id')
+    img_base64 = data.get('image')
 
     user = UserManager.retrieve_by_id(id)
 
     if user is None:
         response_object = {
             'status': 'failure',
-            'message': 'User not found',
+            'description': 'User not found',
         }
         return jsonify(response_object), 404
-    
+
     # decoding image
     img_data = BytesIO(base64.b64decode(img_base64))
-    
+
     # store it, in case of a previously inserted image it's going to be overwritten
     try:
 
         # save image in 256x256
         img = Image.open(img_data)
-        img = img.convert('RGB') # in order to support also Alpha transparency images such as PNGs
+        img = img.convert(
+            'RGB'
+        )  # in order to support also Alpha transparency images such as PNGs
         img = img.resize([256, 256], Image.ANTIALIAS)
-        path_to_save = os.path.join(os.getcwd(), 'mib', 'static', 'pictures', str(id) + '.jpeg')
+        path_to_save = os.path.join(os.getcwd(), 'mib', 'static', 'pictures',
+                                    str(id) + '.jpeg')
         img.save(path_to_save, "JPEG", quality=100, subsampling=0)
 
         # save image in 100x100
         img = Image.open(img_data)
-        img = img.convert('RGB')  # in order to support also Alpha transparency images such as PNGs
+        img = img.convert(
+            'RGB'
+        )  # in order to support also Alpha transparency images such as PNGs
         img = img.resize([100, 100], Image.ANTIALIAS)
-        path_to_save = os.path.join(os.getcwd(), 'mib', 'static', 'pictures', str(id) + '_100.jpeg')
+        path_to_save = os.path.join(os.getcwd(), 'mib', 'static', 'pictures',
+                                    str(id) + '_100.jpeg')
         img.save(path_to_save, "JPEG", quality=100, subsampling=0)
 
     except Exception:
         response_object = {
             'status': 'failure',
-            'message': 'Error in saving the image',
+            'description': 'Error in saving the image',
         }
         return jsonify(response_object), 500
-    
+
     user.has_picture = True
     UserManager.update_user(user)
 
     response_object = {
         'status': 'success',
-        'message': 'Modified',
+        'description': 'Modified',
     }
     return jsonify(response_object), 200
 
 
-def get_profile_picture(current_user_id,user_id):
+def get_user_picture(user_id):
 
-    
+    data = request.get_json()
+    requester_id = data.get('requester_id')
+
     user = UserManager.retrieve_by_id(user_id)
 
     if user is None:
         response_object = {
             'status': 'failure',
-            'message': 'User not found',
+            'description': 'Searched user not found',
         }
         return jsonify(response_object), 404
-    
-    current_user = UserManager.retrieve_by_id(current_user_id)
-    if current_user is None:
-        response = {'status': 'Current user not present'}
-        return jsonify(response), 404
+
+    if requester_id != user_id:
+
+        current_user = UserManager.retrieve_by_id(requester_id)
+        if current_user is None:
+            response = {
+                'status': 'failure',
+                'description': 'Searching user not found',
+            }
+            return jsonify(response), 404
 
     blacklist = None
 
     try:
-        blacklist_response = requests.get("%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(current_user_id)),
-                                timeout=REQUESTS_TIMEOUT_SECONDS)
+        blacklist_response = requests.get(
+            "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(requester_id)),
+            timeout=REQUESTS_TIMEOUT_SECONDS)
         json_payload = blacklist_response.json()
         if blacklist_response.status_code == 200:
             blacklist = json.loads(json_payload['blacklist'])
         else:
-            raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+            raise RuntimeError(
+                'Server has sent an unrecognized status code %s' %
+                blacklist_response.status_code)
 
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
         response_object = {
-        'status': 'failure',
-        'message': 'Error in retrieving blacklist',
+            'status': 'failure',
+            'description': 'Error in retrieving blacklist',
         }
-        return jsonify(response_object),500
+        return jsonify(response_object), 500
 
     if user.id in blacklist:
         response_object = {
-        'status': 'failure',
-        'message': 'Unauthorized',
+            'status': 'failure',
+            'description': 'Forbidden',
         }
-        return jsonify(response_object),401
+        return jsonify(response_object), 403
 
     filename = 'default'
 
@@ -326,7 +347,7 @@ def get_profile_picture(current_user_id,user_id):
 
     filename_100 = filename + "_100.jpeg"
     filename += ".jpeg"
-    
+
     path_to_retrieve = os.path.join(os.getcwd(), 'mib', 'static', 'pictures', filename)
     path_to_retrieve_100 = os.path.join(os.getcwd(), 'mib', 'static', 'pictures', filename_100)
 
@@ -336,18 +357,18 @@ def get_profile_picture(current_user_id,user_id):
         with open(path_to_retrieve, mode='rb') as image:
             data_img = base64.encodebytes(image.read()).decode('utf-8')
 
-        
         with open(path_to_retrieve_100, mode='rb') as image_100:
             data_img_100 = base64.encodebytes(image_100.read()).decode('utf-8')
     except Exception:
         response_object = {
             'status': 'failure',
-            'message': 'Error while retrieve the images',
+            'description': 'Error while retrieve the images',
         }
         return jsonify(response_object), 500
 
     response_object = {
         'status': 'success',
+        'description' : 'Profile pictures retrieved',
         'image': data_img,
         'image_100': data_img_100
     }
@@ -355,110 +376,121 @@ def get_profile_picture(current_user_id,user_id):
     return jsonify(response_object), 200
 
 
-# /users -> /users_list/<user_id>
-def get_users_list(current_user_id):
-    # TODO should be provided with the request
+def get_users_list():
     # TODO COMMENTS
-    # blacklisted = [3, 4]
+    data = request.get_json()
+    requester_id = data.get('requester_id')
 
-    user = UserManager.retrieve_by_id(current_user_id)
+    user = UserManager.retrieve_by_id(requester_id)
 
     if user is None:
         response_object = {
             'status': 'failure',
-            'message': 'User not found',
+            'description': 'User not found',
         }
         return jsonify(response_object), 404
-    
+
     blacklist = None
 
     try:
-        blacklist_response = requests.get("%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(current_user_id)),
-                                timeout=REQUESTS_TIMEOUT_SECONDS)
+        blacklist_response = requests.get(
+            "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(requester_id)),
+            timeout=REQUESTS_TIMEOUT_SECONDS)
         json_payload = blacklist_response.json()
         if blacklist_response.status_code == 200:
             blacklist = json.loads(json_payload['blacklist'])
         else:
-            raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+            raise RuntimeError(
+                'Server has sent an unrecognized status code %s' %
+                blacklist_response.status_code)
 
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
         response_object = {
             'status': 'failure',
-            'message': 'Error in retrieving blacklist',
+            'description': 'Error in retrieving blacklist',
         }
         return jsonify(response_object), 500
 
-    
-    users = UserManager.retrieve_users_by_blacklist(current_user_id, blacklist)
+    users = UserManager.retrieve_users_by_blacklist(requester_id, blacklist)
 
     users_json = [user.serialize() for user in users]
 
     response_object = {
         'status': 'success',
-        'message': 'Users list retrived',
-        'users' : users_json
+        'description': 'Users list retrived',
+        'users': users_json
     }
-    
+
     return jsonify(response_object), 200
 
 
-# /users/<user_id> or /profile
-def get_user(current_user_id,user_id):
+def get_user_by_id(user_id):
     """
-    Get a user by its current id.
+    Get a user by its id.
 
     :param user_id: user it
     :return: json response
     """
+    data = request.get_json()
+    requester_id = data.get('requester_id')
 
+    # check that the searched user exists
     user = UserManager.retrieve_by_id(user_id)
     if user is None:
-        response = {'status': 'User not present'}
-        return jsonify(response), 404
-
-    current_user = UserManager.retrieve_by_id(current_user_id)
-    if current_user is None:
         response = {
-            'status': 'Current user not present'
+            'status': 'failure',
+            'description': 'Searched user not found',
         }
         return jsonify(response), 404
 
-    blacklist = None
+    if requester_id != user_id:
 
-    if current_user_id != user_id:
+        # check that the searching user exists
+        current_user = UserManager.retrieve_by_id(requester_id)
+        if current_user is None:
+            response = {
+                'status': 'failure',
+                'description': 'Requester user not found',
+            }
+            return jsonify(response), 404
+
+        blacklist = None
 
         try:
-            blacklist_response = requests.get("%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(current_user_id)),
-                                    timeout=REQUESTS_TIMEOUT_SECONDS)
+            blacklist_response = requests.get(
+                "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(requester_id)),
+                timeout=REQUESTS_TIMEOUT_SECONDS)
             json_payload = blacklist_response.json()
             if blacklist_response.status_code == 200:
                 blacklist = json.loads(json_payload['blacklist'])
             else:
-                raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+                raise RuntimeError(
+                    'Server has sent an unrecognized status code %s' %
+                    blacklist_response.status_code)
 
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        except (requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout):
             response_object = {
                 'status': 'failure',
-                'message': 'Error in retrieving blacklist',
+                'description': 'Error in retrieving blacklist',
             }
             return jsonify(response_object), 500
 
         if user.id in blacklist:
             response_object = {
                 'status': 'failure',
-                'message': 'Unauthorized',
+                'description': 'Forbidden',
             }
-            return jsonify(response_object), 401
-    
+            return jsonify(response_object), 403
+
     response_object = {
         'status': 'success',
-        'message': 'User retrivied',
-        'user' : user.serialize()
+        'description': 'User retrivied',
+        'user': user.serialize()
     }
     return jsonify(response_object), 200
 
 
-# TODO controllare se serve
 def get_user_by_email(user_email):
     """
     Get a user by its current email.
@@ -466,29 +498,61 @@ def get_user_by_email(user_email):
     :param user_email: user email
     :return: json response
     """
+    data = request.get_json()
+    requester_id = data.get('requester_id')
+
+    # check that the searched user exists
     user = UserManager.retrieve_by_email(user_email)
     if user is None:
-        response = {'status': 'User not present'}
+        response = {
+            'status': 'failure',
+            'description': 'Searched user not found',
+        }
         return jsonify(response), 404
 
-    return jsonify(user.serialize()), 200
+    if requester_id != user.id:
 
+        # check that the searching user exists
+        current_user = UserManager.retrieve_by_id(requester_id)
+        if current_user is None:
+            response = {
+                'status': 'failure',
+                'description': 'Requester user not found',
+            }
+            return jsonify(response), 404
 
-'''
-TODO decidere se eliminare tutto :)
-def delete_user(user_id):
-    """
-    Delete the user with id = user_id.
+        blacklist = None
 
-    :param user_id the id of user to be deleted
-    :return json response
-    """
-    UserManager.delete_user_by_id(user_id)
+        try:
+            blacklist_response = requests.get(
+                "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(requester_id)),
+                timeout=REQUESTS_TIMEOUT_SECONDS)
+            json_payload = blacklist_response.json()
+            if blacklist_response.status_code == 200:
+                blacklist = json.loads(json_payload['blacklist'])
+            else:
+                raise RuntimeError(
+                    'Server has sent an unrecognized status code %s' %
+                    blacklist_response.status_code)
+
+        except (requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout):
+            response_object = {
+                'status': 'failure',
+                'description': 'Error in retrieving blacklist',
+            }
+            return jsonify(response_object), 500
+
+        if user.id in blacklist:
+            response_object = {
+                'status': 'failure',
+                'description': 'Forbidden',
+            }
+            return jsonify(response_object), 403
+
     response_object = {
         'status': 'success',
-        'message': 'Successfully deleted',
+        'description': 'User retrivied',
+        'user': user.serialize()
     }
-
-    return jsonify(response_object), 202
-
-'''
+    return jsonify(response_object), 200

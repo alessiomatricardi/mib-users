@@ -39,7 +39,7 @@ class ViewTest(unittest.TestCase):
         json_response = response.json
 
         assert response.status_code == 200
-        assert json_response["authentication"] == 'success'
+        assert json_response["status"] == 'success'
         assert json_response['user'] is not None
 
         return user
