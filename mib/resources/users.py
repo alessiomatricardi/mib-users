@@ -296,28 +296,30 @@ def get_profile_picture(current_user_id,user_id):
 
     blacklist = None
 
-    try:
-        blacklist_response = requests.get("%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(current_user_id)),
-                                timeout=REQUESTS_TIMEOUT_SECONDS)
-        json_payload = blacklist_response.json()
-        if blacklist_response.status_code == 200:
-            blacklist = json.loads(json_payload['blacklist'])
-        else:
-            raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+    if current_user_id != user_id:
+        try:
+            blacklist_response = requests.get("%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(current_user_id)),
+                                    timeout=REQUESTS_TIMEOUT_SECONDS)
+            json_payload = blacklist_response.json()
+            if blacklist_response.status_code == 200:
+                blacklist = json.loads(json_payload['blacklist'])
+            #TODO: check wether we really need this (/blacklist only returns either 200 or 500 status code)
+            # else:
+            #     raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
 
-    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-        response_object = {
-        'status': 'failure',
-        'message': 'Error in retrieving blacklist',
-        }
-        return jsonify(response_object),500
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            response_object = {
+            'status': 'failure',
+            'message': 'Error in retrieving blacklist',
+            }
+            return jsonify(response_object),500
 
-    if user.id in blacklist:
-        response_object = {
-        'status': 'failure',
-        'message': 'Unauthorized',
-        }
-        return jsonify(response_object),401
+        if user.id in blacklist:
+            response_object = {
+            'status': 'failure',
+            'message': 'Unauthorized',
+            }
+            return jsonify(response_object),401
 
     filename = 'default'
 
@@ -379,8 +381,9 @@ def get_users_list(current_user_id):
         json_payload = blacklist_response.json()
         if blacklist_response.status_code == 200:
             blacklist = json.loads(json_payload['blacklist'])
-        else:
-            raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+        #TODO: check wether we really need this (/blacklist only returns either 200 or 500 status code)
+        # else:
+        #     raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
 
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
         response_object = {
@@ -434,8 +437,9 @@ def get_user(current_user_id,user_id):
             json_payload = blacklist_response.json()
             if blacklist_response.status_code == 200:
                 blacklist = json.loads(json_payload['blacklist'])
-            else:
-                raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+            #TODO: check wether we really need this (/blacklist only returns either 200 or 500 status code)
+            # else:
+            #     raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
 
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             response_object = {
