@@ -498,8 +498,6 @@ def get_user_by_email(user_email):
     :param user_email: user email
     :return: json response
     """
-    data = request.get_json()
-    requester_id = data.get('requester_id')
 
     # check that the searched user exists
     user = UserManager.retrieve_by_email(user_email)
@@ -509,46 +507,6 @@ def get_user_by_email(user_email):
             'description': 'Searched user not found',
         }
         return jsonify(response), 404
-
-    if requester_id != user.id:
-
-        # check that the searching user exists
-        current_user = UserManager.retrieve_by_id(requester_id)
-        if current_user is None:
-            response = {
-                'status': 'failure',
-                'description': 'Requester user not found',
-            }
-            return jsonify(response), 404
-
-        blacklist = None
-
-        try:
-            blacklist_response = requests.get(
-                "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(requester_id)),
-                timeout=REQUESTS_TIMEOUT_SECONDS)
-            json_payload = blacklist_response.json()
-            if blacklist_response.status_code == 200:
-                blacklist = json.loads(json_payload['blacklist'])
-            else:
-                raise RuntimeError(
-                    'Server has sent an unrecognized status code %s' %
-                    blacklist_response.status_code)
-
-        except (requests.exceptions.ConnectionError,
-                requests.exceptions.Timeout):
-            response_object = {
-                'status': 'failure',
-                'description': 'Error in retrieving blacklist',
-            }
-            return jsonify(response_object), 500
-
-        if user.id in blacklist:
-            response_object = {
-                'status': 'failure',
-                'description': 'Forbidden',
-            }
-            return jsonify(response_object), 403
 
     response_object = {
         'status': 'success',
