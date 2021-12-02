@@ -186,9 +186,9 @@ class TestUsers(ViewTest):
         BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
         REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
-        responses.add(responses.GET, "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(test_id['id'])),
+        responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
                   json={ "blacklist": "[1]", 
-                         "message": "Blacklist successfully retrieved", 
+                         "description": "Blacklist successfully retrieved", 
                         "status": "success"
                        }, 
                        status=200)
@@ -227,9 +227,9 @@ class TestUsers(ViewTest):
         BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
         REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
-        responses.add(responses.GET, "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(test_id['id'])),
+        responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
                   json={ "blacklist": "[]", 
-                         "message": "Blacklist successfully retrieved", 
+                         "description": "Blacklist successfully retrieved", 
                         "status": "success"
                        }, 
                        status=200)
@@ -273,7 +273,7 @@ class TestUsers(ViewTest):
         REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
         # mocking the presence of the target user in current user's blacklist
-        responses.add(responses.GET, "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(test_id['id'])), json=json_target_in_blacklist, status=200)
+        responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT), json=json_target_in_blacklist, status=200)
 
         rv = self.client.get('/users/1', json = json_get_correct_id)
         self.assertEqual(rv.status_code, 403)

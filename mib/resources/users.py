@@ -315,7 +315,8 @@ def get_user_picture(user_id):
 
     if requester_id != user_id:
         try:
-            blacklist_response = requests.get("%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(requester_id)),
+            auth_json = {'requester_id': requester_id }
+            blacklist_response = requests.get("%s/blacklist" % (BLACKLIST_ENDPOINT), json=auth_json,
                                     timeout=REQUESTS_TIMEOUT_SECONDS)
             json_payload = blacklist_response.json()
             if blacklist_response.status_code == 200:
@@ -392,9 +393,9 @@ def get_users_list():
     blacklist = None
 
     try:
-        blacklist_response = requests.get(
-            "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(requester_id)),
-            timeout=REQUESTS_TIMEOUT_SECONDS)
+        auth_json = {'requester_id': requester_id }
+        blacklist_response = requests.get("%s/blacklist" % (BLACKLIST_ENDPOINT), json=auth_json,
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
         json_payload = blacklist_response.json()
         if blacklist_response.status_code == 200:
             blacklist = json.loads(json_payload['blacklist'])
@@ -455,9 +456,9 @@ def get_user_by_id(user_id):
         blacklist = None
 
         try:
-            blacklist_response = requests.get(
-                "%s/blacklist/%s" % (BLACKLIST_ENDPOINT, str(requester_id)),
-                timeout=REQUESTS_TIMEOUT_SECONDS)
+            auth_json = {'requester_id': requester_id }
+            blacklist_response = requests.get("%s/blacklist" % (BLACKLIST_ENDPOINT), json=auth_json,
+                                    timeout=REQUESTS_TIMEOUT_SECONDS)
             json_payload = blacklist_response.json()
             if blacklist_response.status_code == 200:
                 blacklist = json.loads(json_payload['blacklist'])
