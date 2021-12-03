@@ -405,7 +405,7 @@ paths:
   /users:
     get:
       tags: [ Users ]
-      description: Get available users list
+      summary: Get available users list
       operationId: mib.resources.users.get_users_list
       requestBody:
         required: true
@@ -450,7 +450,7 @@ paths:
   /users/{user_id}:
     get:
       tags: [ Users ]
-      description: Get a user by its id
+      summary: Get a user by its id
       operationId: mib.resources.users.get_user_by_id
       requestBody:
         required: true
@@ -514,7 +514,7 @@ paths:
   /users/{user_id}/picture:
     get:
       tags: [ Users ]
-      description: Get a user picture by its id
+      summary: Get a user picture by its id
       operationId: mib.resources.users.get_user_picture
       requestBody:
         required: true
@@ -582,7 +582,7 @@ paths:
   /users/{user_email}:
     get:
       tags: [ Users ]
-      description: Get a user by its email
+      summary: Get a user by its email
       operationId: mib.resources.users.get_user_by_email
       parameters:
         - name: user_email

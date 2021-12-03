@@ -416,7 +416,7 @@ def get_users_list():
 
     response_object = {
         'status': 'success',
-        'description': 'Users list retrived',
+        'description': 'Users list retrieved',
         'users': users_json
     }
 
