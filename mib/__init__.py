@@ -55,12 +55,10 @@ def create_app():
     env.from_object(config_object)
 
     # instance db
-    db = SQLAlchemy()
+    db = SQLAlchemy(app)
 
     # IMPORTANT: do not delete
     import mib.models
-
-    db.init_app(app)
 
     # we need to populate the db
     with app.app_context():
