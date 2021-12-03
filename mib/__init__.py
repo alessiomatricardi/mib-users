@@ -55,15 +55,16 @@ def create_app():
     env.from_object(config_object)
 
     # instance db
-    db = SQLAlchemy(app)
+    db = SQLAlchemy()
 
     # IMPORTANT: do not delete
     import mib.models
 
-    # checking the environment
-    if flask_env != 'production':
-        # we need to populate the db
-        db.create_all(app=app)
+    db.init_app(app)
+
+    # we need to populate the db
+    with app.app_context():
+        db.create_all()
 
     # registering to api app all specifications
     register_specifications(api_app)
