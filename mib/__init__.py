@@ -47,8 +47,7 @@ def create_app():
     elif flask_env == 'production':
         config_object = 'config.ProdConfig'
     else:
-        raise RuntimeError(
-            "%s is not recognized as valid app environment. You have to setup the environment!" % flask_env)
+        raise RuntimeError("%s is not recognized as valid app environment. You have to setup the environment!" % flask_env)
 
     # Load config
     env = Environments(app)
