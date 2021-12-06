@@ -42,7 +42,10 @@ class UserManager(Manager):
         matching_users = []
 
         for user in available_users:
-            if firstname in user.firstname or lastname in user.lastname or email in user.email:
+            if (firstname != '' and firstname in user.firstname) or\
+                (lastname != '' and lastname in user.lastname) or\
+                (email != '' and email in user.email):
+
                 matching_users.append(user)
 
         return matching_users
