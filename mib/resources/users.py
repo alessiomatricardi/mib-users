@@ -587,8 +587,6 @@ def spend_lottery_points():
         }
         return jsonify(response_object), 404
 
-    print('Current lottery points:' + str(current_user.lottery_points))
-
     if current_user.lottery_points < 10:
         response_object = {
             'status': 'failure',
