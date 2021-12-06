@@ -282,8 +282,49 @@ class TestUsers(ViewTest):
         rv = self.client.get('/users/2', json = json_get_correct_id)
         self.assertEqual(rv.status_code, 200)
         
+    @responses.activate
+    def test_07_users_search(self):
+        
+        # retrieve Barbara Verdi, our test dummy
+        rv = self.client.get('/users/prova4@mail.com')
+        test_id = rv.get_json()['user']
+        assert rv.status_code == 200
 
-    def test_07_unregister(self):
+        # json search variables
+        json_search_requester_not_found = {'requester_id': 200,'email':'user@example.com','firstname':'Name','lastname':'Surname'}
+        json_search_bad_parameters = {'requester_id': test_id['id'],'email':'','firstname':'','lastname':''}
+        json_search_success = {'requester_id': test_id['id'],'email':'user@example.com','firstname':'Name','lastname':'Surname'}
+
+        # failure 500 when blacklist is not avaialable
+        rv = self.client.get('/users/search', json = json_search_success)
+        self.assertEqual(rv.status_code, 500)
+        
+        # mocking
+        app = create_app()
+
+        BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
+        REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
+
+        responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
+                  json={ "blacklist": "[]", 
+                         "description": "Blacklist successfully retrieved", 
+                        "status": "success"
+                       }, 
+                       status=200)
+
+        # failure 404 requester id does not exist
+        rv = self.client.get('/users/search', json = json_search_requester_not_found)
+        self.assertEqual(rv.status_code, 404)
+
+        # failure 400 parameter not given
+        rv = self.client.get('/users/search', json = json_search_bad_parameters)
+        self.assertEqual(rv.status_code, 400)
+
+        # success
+        rv = self.client.get('/users/search', json = json_search_success)
+        self.assertEqual(rv.status_code, 200)
+
+    def test_08_unregister(self):
 
         # retrieve Barbara Verdi, our test dummy
         rv = self.client.get('/users/prova4@mail.com')
