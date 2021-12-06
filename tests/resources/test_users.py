@@ -324,7 +324,41 @@ class TestUsers(ViewTest):
         rv = self.client.get('/users/search', json = json_search_success)
         self.assertEqual(rv.status_code, 200)
 
-    def test_08_unregister(self):
+    def test_08_spend_lottery_points(self):
+        # retrieve Barbara Verdi, our test dummy
+        rv = self.client.get('/users/prova4@mail.com')
+        test_id = rv.get_json()['user']
+        previous_lottery_points = test_id['lottery_points']
+        assert rv.status_code == 200
+
+        # spending lottery points variables
+        json_requester_non_existing = {'requester_id':200}
+        json_requester_existing = {'requester_id':test_id['id']}
+
+        # test user not found
+        rv = self.client.put('/users/spend', json = json_requester_non_existing)
+        self.assertEqual(rv.status_code, 404)
+        
+        # test failure not enough lottery points
+        rv = self.client.put('/users/spend', json = json_requester_existing)
+        self.assertEqual(rv.status_code, 403)
+
+        # update user to have enough points
+        from mib.dao.user_manager import UserManager
+        
+        test_user = UserManager.retrieve_by_id(test_id['id'])
+        test_user.lottery_points += 10
+        UserManager.update_user(test_user)
+
+        # test success having enough lottery points
+        rv = self.client.put('/users/spend', json = json_requester_existing)
+        self.assertEqual(rv.status_code, 200)
+
+        # checking the value in db
+        current_user = UserManager.retrieve_by_id(test_id['id'])
+        self.assertEqual(current_user.lottery_points,previous_lottery_points)
+
+    def test_09_unregister(self):
 
         # retrieve Barbara Verdi, our test dummy
         rv = self.client.get('/users/prova4@mail.com')

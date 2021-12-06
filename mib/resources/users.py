@@ -573,3 +573,32 @@ def search_users():
     }
 
     return response_object, 200
+
+def spend_lottery_points():
+    data = request.get_json()
+    requester_id = data.get('requester_id')
+
+    current_user = UserManager.retrieve_by_id(requester_id)
+
+    if current_user is None:
+        response_object = {
+            'status': 'failure',
+            'description': 'Current user not found',
+        }
+        return jsonify(response_object), 404
+
+    if current_user.lottery_points < 10:
+        response_object = {
+            'status': 'failure',
+            'description': 'Not enough lottery points to delete a pending message',
+        }
+        return jsonify(response_object), 403
+
+    current_user.lottery_points -= 10
+    UserManager.update_user(current_user)
+
+    response_object = {
+            'status': 'success',
+            'description': 'Lottery points spent',
+        }
+    return jsonify(response_object), 200
