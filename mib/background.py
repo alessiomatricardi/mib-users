@@ -1,3 +1,4 @@
+from logging import Manager
 from os import name
 import os
 import re
@@ -51,29 +52,37 @@ def lottery_notification():
     
     with app.app_context():
         from mib.dao.user_manager import UserManager
-        print(UserManager.retrieve_by_id(1))
+        from mib.models.user import User
         
-        #print("CIAO")
-
         """
-        #from mib import db
-        #from mib.models import User
-        #db.init_app(app) # ----------------------- ??????
+        creation of a user for testing purposes
+        user = User()
+        user.email = "rjknet1999@gmail.com"
+        user.firstname = "Riccardo"
+        user.lastname = "Gallo"
+        user.date_of_birth = datetime.datetime.fromisoformat('2010-10-25 15:00').date()
+        user.set_password("prova123")
 
-        users = User.query.with_entities(User.id, User.email, User.firstname, User.lottery_points).all()
-        for user in users: # users = [(id1, email1, firstname1, lottery_points1), (id2, email2, firstname2, lottery_points2), ...]
+        UserManager.create_user(user)
+        """
+
+        users = UserManager.retrieve_all_users()
+        
+        for user in users:
             
-            recipient_id, recipient_email, recipient_firstname, recipient_lottery_points = user
-
+            recipient_id = user.id
+            recipient_email = user.email
+            recipient_firstname = user.firstname
+            
             lottery_points = random.randint(MIN_LOTTERY_POINTS, MAX_LOTTERY_POINTS)
 
             message = f'Subject: Monthly lottery prize\n\nHi {recipient_firstname}! You won {lottery_points} points in the lottery.'
             send_email(recipient_email, message)
 
-            recipient_lottery_points += lottery_points
             # Query to the db to update the total points of a user
-            db.session.query(User).filter(User.id == recipient_id).update({'lottery_points': recipient_lottery_points})
-            
-        db.session.commit()
-        """
+            user.lottery_points += lottery_points
+            UserManager.update_user(user)
 
+        print("FINITO DI AGGIUNGERE PUNTI")
+ 
+        
