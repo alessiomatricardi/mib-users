@@ -1,5 +1,6 @@
 from mib.dao.manager import Manager
 from mib.models.user import User
+import string
 
 
 class UserManager(Manager):
@@ -11,7 +12,7 @@ class UserManager(Manager):
     @staticmethod
     def retrieve_by_id(id_) -> User:
         Manager.check_none(id=id_)
-        return User.query.filter(User.id == id_).first()
+        return User.query.filter(User.id == id_).filter(User.is_active == True).first()
 
     @staticmethod
     def retrieve_by_email(email) -> User:
@@ -30,6 +31,21 @@ class UserManager(Manager):
             .filter(User.is_active == True).filter(User.is_admin == False).all()
         
         return all_users
+
+    @staticmethod
+    def search_users(id: int, firstname: string, lastname: string, email: string, blacklist):
+        Manager.check_none(id=id)
+        Manager.check_none(blacklist=blacklist)
+        
+        available_users = UserManager.retrieve_users_by_blacklist(id,blacklist)
+
+        matching_users = []
+
+        for user in available_users:
+            if firstname in user.firstname or lastname in user.lastname or email in user.email:
+                matching_users.append(user)
+
+        return matching_users
 
 
     # TODO controllare utilità

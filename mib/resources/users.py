@@ -512,3 +512,64 @@ def get_user_by_email(user_email):
         'user': user.serialize()
     }
     return jsonify(response_object), 200
+
+def search_users():
+
+    data = request.get_json()
+    requester_id = data.get('requester_id')
+    firstname = data.get('firstname')
+    lastname = data.get('lastname')
+    email = data.get('email')
+
+    current_user = UserManager.retrieve_by_id(requester_id)
+
+    if current_user is None:
+        response_object = {
+            'status': 'failure',
+            'description': 'Current user not found',
+        }
+        return jsonify(response_object), 404
+
+    if firstname == '' and lastname == '' and email == '':
+        response_object = {
+            'status': 'failure',
+            'description': 'No parameters given',
+        }
+        return jsonify(response_object), 400
+
+    # retrieving blacklist
+    blacklist = None
+
+    try:
+        auth_json = {'requester_id': requester_id }
+        blacklist_response = requests.get("%s/blacklist" % (BLACKLIST_ENDPOINT), json=auth_json,
+                                timeout=REQUESTS_TIMEOUT_SECONDS)
+        json_payload = blacklist_response.json()
+        if blacklist_response.status_code == 200:
+            blacklist = json.loads(json_payload['blacklist'])
+        #TODO: check wether we really need this (/blacklist only returns either 200 or 500 status code)
+        # else:
+        #     raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        response_object = {
+            'status': 'failure',
+            'description': 'Error in retrieving blacklist',
+        }
+        return jsonify(response_object), 500
+
+    # searching matching users
+    matching_users = UserManager.search_users(requester_id,firstname,lastname,email,blacklist)
+    
+    users_json = []
+
+    for user in matching_users:
+        users_json.append(user.serialize())
+
+    response_object = {
+        'status': 'success',
+        'message': 'Matching users found',
+        'users': users_json
+    }
+
+    return response_object, 200
