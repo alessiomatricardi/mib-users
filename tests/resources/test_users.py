@@ -344,28 +344,19 @@ class TestUsers(ViewTest):
         self.assertEqual(rv.status_code, 403)
 
         # update user to have enough points
-    
-        app = create_app()
-        with app.app_context():
-            from mib import db
-            from mib.models import User
-            db.session.query(User).filter(User.id==test_id['id']).update({'lottery_points':(previous_lottery_points+10)})
-            db.session.commit()
-
-            user = db.session.query(User).filter(User.id==test_id['id']).first()
-            self.assertEqual(previous_lottery_points+10,user.lottery_points)
-            print(user.serialize())
-            # current_user = UserManager.retrieve_by_id(test_id['id'])
-            # current_user.lottery_points+=10
-            # UserManager.update_user(current_user)
+        from mib.dao.user_manager import UserManager
+        
+        test_user = UserManager.retrieve_by_id(test_id['id'])
+        test_user.lottery_points += 10
+        UserManager.update_user(test_user)
 
         # test success having enough lottery points
         rv = self.client.put('/users/spend', json = json_requester_existing)
         self.assertEqual(rv.status_code, 200)
 
         # checking the value in db
-        # current_user = UserManager.retrieve_by_id(test_id['id'])
-        # self.assertEqual(current_user.lottery_points,previous_lottery_points)
+        current_user = UserManager.retrieve_by_id(test_id['id'])
+        self.assertEqual(current_user.lottery_points,previous_lottery_points)
 
     def test_09_unregister(self):
 
