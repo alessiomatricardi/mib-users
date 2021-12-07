@@ -32,5 +32,5 @@ RUN ["python3", "-m", "spacy", "download", "en"]
 #EXPOSE 5000/tcp          # NON CREDO CELERY VADA ESPOSTO
 
 # Main command
-CMD ["celery", "-A", ".background", "worker", "-l", "INFO", "-B"]
+CMD ["celery", "-A", "mib.background", "worker", "-l", "INFO", "-B"]
 
