@@ -320,7 +320,13 @@ def get_user_picture(user_id):
                                     timeout=REQUESTS_TIMEOUT_SECONDS)
             json_payload = blacklist_response.json()
             if blacklist_response.status_code == 200:
-                blacklist = json_payload['blacklist']
+                blocked = json_payload['blocked']
+                blocking = json_payload['blocking']
+                blacklist = []
+                for ob in blocked:
+                    blacklist.append(ob)
+                for ob in blocking:
+                    blacklist.append(ob)
             #TODO: check wether we really need this (/blacklist only returns either 200 or 500 status code)
             # else:
             #     raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
@@ -398,7 +404,13 @@ def get_users_list():
                                 timeout=REQUESTS_TIMEOUT_SECONDS)
         json_payload = blacklist_response.json()
         if blacklist_response.status_code == 200:
-            blacklist = json_payload['blacklist']
+            blocked = json_payload['blocked']
+            blocking = json_payload['blocking']
+            blacklist = []
+            for ob in blocked:
+                blacklist.append(ob)
+            for ob in blocking:
+                blacklist.append(ob)
         #TODO: check wether we really need this (/blacklist only returns either 200 or 500 status code)
         # else:
         #     raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
@@ -461,7 +473,13 @@ def get_user_by_id(user_id):
                                     timeout=REQUESTS_TIMEOUT_SECONDS)
             json_payload = blacklist_response.json()
             if blacklist_response.status_code == 200:
-                blacklist = json_payload['blacklist']
+                blocked = json_payload['blocked']
+                blocking = json_payload['blocking']
+                blacklist = []
+                for ob in blocked:
+                    blacklist.append(ob)
+                for ob in blocking:
+                    blacklist.append(ob)
             #TODO: check wether we really need this (/blacklist only returns either 200 or 500 status code)
             # else:
             #     raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
@@ -546,7 +564,13 @@ def search_users():
                                 timeout=REQUESTS_TIMEOUT_SECONDS)
         json_payload = blacklist_response.json()
         if blacklist_response.status_code == 200:
-            blacklist = json_payload['blacklist']
+            blocked = json_payload['blocked']
+            blocking = json_payload['blocking']
+            blacklist = []
+            for ob in blocked:
+                blacklist.append(ob)
+            for ob in blocking:
+                blacklist.append(ob)
         #TODO: check wether we really need this (/blacklist only returns either 200 or 500 status code)
         # else:
         #     raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
