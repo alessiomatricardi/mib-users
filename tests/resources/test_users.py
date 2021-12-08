@@ -187,7 +187,8 @@ class TestUsers(ViewTest):
         REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
         responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
-                  json={ "blacklist": [1], 
+                  json={ "blocked": [1],
+                            "blocking":[], 
                          "description": "Blacklist successfully retrieved", 
                         "status": "success"
                        }, 
@@ -228,7 +229,8 @@ class TestUsers(ViewTest):
         REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
         responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
-                  json={ "blacklist": [], 
+                  json={ "blocked": [],
+                           "blocking":[], 
                          "description": "Blacklist successfully retrieved", 
                         "status": "success"
                        }, 
@@ -264,7 +266,7 @@ class TestUsers(ViewTest):
         self.assertEqual(rv.status_code, 500)
 
         #target user test variables
-        json_target_in_blacklist = { "blacklist": [1], "message": "Blacklist successfully retrieved", "status": "success"}
+        json_target_in_blacklist = { "blocked": [1],"blocking":[],  "message": "Blacklist successfully retrieved", "status": "success"}
         
         # mocking
         app = create_app()
@@ -306,7 +308,8 @@ class TestUsers(ViewTest):
         REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
         responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
-                  json={ "blacklist": [], 
+                  json={ "blocked": [],
+                           "blocking":[], 
                          "description": "Blacklist successfully retrieved", 
                         "status": "success"
                        }, 
