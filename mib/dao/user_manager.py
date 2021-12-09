@@ -10,9 +10,9 @@ class UserManager(Manager):
         Manager.create(user=user)
 
     @staticmethod
-    def retrieve_by_id(id_) -> User:
-        Manager.check_none(id=id_)
-        return User.query.filter(User.id == id_).filter(User.is_active == True).first()
+    def retrieve_by_id(id) -> User:
+        Manager.check_none(id=id)
+        return User.query.filter(User.id == id).filter(User.is_active == True).first()
 
     @staticmethod
     def retrieve_by_email(email) -> User:
@@ -58,6 +58,6 @@ class UserManager(Manager):
         Manager.delete(user=user)
 
     @staticmethod
-    def delete_user_by_id(id_: int):
-        user = UserManager.retrieve_by_id(id_)
+    def delete_user_by_id(id : int):
+        user = UserManager.retrieve_by_id(id)
         UserManager.delete_user(user)
