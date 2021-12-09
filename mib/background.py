@@ -18,11 +18,12 @@ MIN_LOTTERY_POINTS = 1
 MAX_LOTTERY_POINTS = 5
 
 if os.environ.get('DOCKER_IN_USE') is not None:
-    BACKEND = BROKER = 'redis://redis:6379'
+    BACKEND = BROKER = 'redis://redis_users:6379'
 else:
     BACKEND = BROKER = 'redis://localhost:6379'
 
 celery = Celery(__name__, backend=BACKEND, broker=BROKER) 
+
 
 celery.conf.timezone = 'Europe/Rome' # set timezone to Rome
 
