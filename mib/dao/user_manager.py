@@ -12,7 +12,7 @@ class UserManager(Manager):
     @staticmethod
     def retrieve_by_id(id) -> User:
         Manager.check_none(id=id)
-        return User.query.filter(User.id == id).filter(User.is_active == True).first()
+        return User.query.filter(User.id == id).first()
 
     @staticmethod
     def retrieve_by_email(email) -> User:
@@ -49,9 +49,6 @@ class UserManager(Manager):
                 matching_users.append(user)
 
         return matching_users
-
-
-    # TODO controllare utilità
 
     @staticmethod
     def delete_user(user: User):

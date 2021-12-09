@@ -215,16 +215,6 @@ def modify_content_filter():
 
 
 def modify_profile_picture():
-    '''
-    TODO ADD FEATURE INSIDE API GATEWAY WHICH SERIALIZES THE IMAGE IN A JSON { id: <id>, base64: <base64>}
-
-    data = {}
-    with open('some.gif', mode='rb') as file:
-        img = file.read()
-    data['img'] = base64.encodebytes(img).decode('utf-8')
-
-    print(json.dumps(data))
-    '''
     """
     Used to modify profile picture 
     Called by /profile/picture
@@ -305,45 +295,44 @@ def get_user_picture(user_id):
 
         current_user = UserManager.retrieve_by_id(requester_id)
         if current_user is None:
-            response = {
+            response_object = {
                 'status': 'failure',
                 'description': 'Searching user not found',
             }
-            return jsonify(response), 404
+            return jsonify(response_object), 404
 
     blacklist = None
 
     if requester_id != user_id:
         try:
             auth_json = {'requester_id': requester_id }
-            blacklist_response = requests.get("%s/blacklist" % (BLACKLIST_ENDPOINT), json=auth_json,
+            response = requests.get("%s/blacklist" % (BLACKLIST_ENDPOINT), json=auth_json,
                                     timeout=REQUESTS_TIMEOUT_SECONDS)
-            json_payload = blacklist_response.json()
-            if blacklist_response.status_code == 200:
-                blocked = json_payload['blocked']
-                blocking = json_payload['blocking']
-                blacklist = []
-                for ob in blocked:
-                    blacklist.append(ob)
-                for ob in blocking:
-                    blacklist.append(ob)
-            #TODO: check wether we really need this (/blacklist only returns either 200 or 500 status code)
-            # else:
-            #     raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+            
+            if response.status_code != 200:
+                response_object = {
+                    'status': 'failure',
+                    'description': 'Error in retrieving blacklist',
+                }
+                return jsonify(response_object), response.status_code
+
+            json_payload = response.json()
+            blocked = json_payload['blocked']
+            blocking = json_payload['blocking']
 
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             response_object = {
             'status': 'failure',
             'message': 'Error in retrieving blacklist',
             }
-            return jsonify(response_object),500
+            return jsonify(response_object), 500
 
-        if user.id in blacklist:
+        if user.id in blocked or user.id in blocking:
             response_object = {
             'status': 'failure',
             'message': 'Unauthorized',
             }
-            return jsonify(response_object),401
+            return jsonify(response_object), 401
 
     filename = 'default'
 
@@ -400,20 +389,24 @@ def get_users_list():
 
     try:
         auth_json = {'requester_id': requester_id }
-        blacklist_response = requests.get("%s/blacklist" % (BLACKLIST_ENDPOINT), json=auth_json,
+        response = requests.get("%s/blacklist" % (BLACKLIST_ENDPOINT), json=auth_json,
                                 timeout=REQUESTS_TIMEOUT_SECONDS)
-        json_payload = blacklist_response.json()
-        if blacklist_response.status_code == 200:
-            blocked = json_payload['blocked']
-            blocking = json_payload['blocking']
-            blacklist = []
-            for ob in blocked:
-                blacklist.append(ob)
-            for ob in blocking:
-                blacklist.append(ob)
-        #TODO: check wether we really need this (/blacklist only returns either 200 or 500 status code)
-        # else:
-        #     raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+        
+        if response.status_code != 200:
+            response_object = {
+                'status': 'failure',
+                'description': 'Error in retrieving blacklist',
+            }
+            return jsonify(response_object), response.status_code
+
+        json_payload = response.json()
+        blocked = json_payload['blocked']
+        blocking = json_payload['blocking']
+        blacklist = []
+        for ob in blocked:
+            blacklist.append(ob)
+        for ob in blocking:
+            blacklist.append(ob)
 
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
         response_object = {
@@ -469,20 +462,19 @@ def get_user_by_id(user_id):
 
         try:
             auth_json = {'requester_id': requester_id }
-            blacklist_response = requests.get("%s/blacklist" % (BLACKLIST_ENDPOINT), json=auth_json,
+            response = requests.get("%s/blacklist" % (BLACKLIST_ENDPOINT), json=auth_json,
                                     timeout=REQUESTS_TIMEOUT_SECONDS)
-            json_payload = blacklist_response.json()
-            if blacklist_response.status_code == 200:
-                blocked = json_payload['blocked']
-                blocking = json_payload['blocking']
-                blacklist = []
-                for ob in blocked:
-                    blacklist.append(ob)
-                for ob in blocking:
-                    blacklist.append(ob)
-            #TODO: check wether we really need this (/blacklist only returns either 200 or 500 status code)
-            # else:
-            #     raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+            
+            if response.status_code != 200:
+                response_object = {
+                    'status': 'failure',
+                    'description': 'Error in retrieving blacklist',
+                }
+                return jsonify(response_object), response.status_code
+
+            json_payload = response.json()
+            blocked = json_payload['blocked']
+            blocking = json_payload['blocking']
 
         except (requests.exceptions.ConnectionError,
                 requests.exceptions.Timeout):
@@ -492,7 +484,7 @@ def get_user_by_id(user_id):
             }
             return jsonify(response_object), 500
 
-        if user.id in blacklist:
+        if user.id in blocked or user.id in blocking:
             response_object = {
                 'status': 'failure',
                 'description': 'Forbidden',
@@ -531,6 +523,7 @@ def get_user_by_email(user_email):
     }
     return jsonify(response_object), 200
 
+
 def search_users():
 
     data = request.get_json()
@@ -560,20 +553,24 @@ def search_users():
 
     try:
         auth_json = {'requester_id': requester_id }
-        blacklist_response = requests.get("%s/blacklist" % (BLACKLIST_ENDPOINT), json=auth_json,
+        response = requests.get("%s/blacklist" % (BLACKLIST_ENDPOINT), json=auth_json,
                                 timeout=REQUESTS_TIMEOUT_SECONDS)
-        json_payload = blacklist_response.json()
-        if blacklist_response.status_code == 200:
-            blocked = json_payload['blocked']
-            blocking = json_payload['blocking']
-            blacklist = []
-            for ob in blocked:
-                blacklist.append(ob)
-            for ob in blocking:
-                blacklist.append(ob)
-        #TODO: check wether we really need this (/blacklist only returns either 200 or 500 status code)
-        # else:
-        #     raise RuntimeError('Server has sent an unrecognized status code %s' % blacklist_response.status_code)
+        
+        if response.status_code != 200:
+            response_object = {
+                'status': 'failure',
+                'description': 'Error in retrieving blacklist',
+            }
+            return jsonify(response_object), response.status_code
+
+        json_payload = response.json()
+        blocked = json_payload['blocked']
+        blocking = json_payload['blocking']
+        blacklist = []
+        for ob in blocked:
+            blacklist.append(ob)
+        for ob in blocking:
+            blacklist.append(ob)
 
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
         response_object = {
@@ -597,6 +594,7 @@ def search_users():
     }
 
     return response_object, 200
+
 
 def spend_lottery_points():
     data = request.get_json()
