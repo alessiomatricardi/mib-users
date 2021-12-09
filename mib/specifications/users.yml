@@ -621,6 +621,113 @@ paths:
                     type: string
                     description: "Human readable result"
 
+  /users/search:
+    get:
+      tags: [ Users ]
+      summary: Search for users by email, firstname, lastname
+      operationId: mib.resources.users.search_users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsersSearch'
+      responses:
+        200:
+          description: Return user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: "It can be failure or success"
+                  description:
+                    type: string
+                    description: "Human readable result"
+                  users:
+                    type: array
+                    items: 
+                      $ref : '#/components/schemas/User'
+        400:
+          description: Bad Request, no parameters gived
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: "It can be failure or success"
+                  description:
+                    type: string
+                    description: "Human readable result"
+        404:
+          description: Current user not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: "It can be failure or success"
+                  description:
+                    type: string
+                    description: "Human readable result"
+  
+  /users/spend:
+    put:
+      tags: [ Users ]
+      summary: Checks the availability of 10 lottery points to delete a pending message
+      operationId: mib.resources.users.spend_lottery_points
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequesterID'
+      responses:
+        200:
+          description: Lottery points spent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: "It can be failure or success"
+                  description:
+                    type: string
+                    description: "Human readable result"
+        403:
+          description: Not enough lottery points
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: "It can be failure or success"
+                  description:
+                    type: string
+                    description: "Human readable result"
+        404:
+          description: Current user not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: "It can be failure or success"
+                  description:
+                    type: string
+                    description: "Human readable result"
 components:
   schemas:
     RequesterID:
@@ -833,3 +940,26 @@ components:
           type: boolean
           description: Content filter enabled
           example: true
+      
+    UsersSearch:
+      required:
+        - requester_id
+        - firstname
+        - lastname
+        - email
+      type: object
+      properties:
+        requester_id:
+          type: integer
+          format: int64
+          description: ID of the user
+          example: 123
+        firstname:
+          type: string
+          description: Firstname of searched user
+        lastname:
+          type: string
+          description: Lastname of searched user
+        email:
+          type: string
+          description: Email of searched user

@@ -13,12 +13,12 @@ class User(db.Model):
     # The name of the table that we explicitly set
     __tablename__ = 'User'
 
-    # A list of fields to be serialized TODO CONTROLLARE
+    # A list of fields to be serialized
     SERIALIZE_LIST = ['id', 'email', 'is_active', 'firstname', 'lastname', 'date_of_birth', 'lottery_points', 'has_picture', 'content_filter_enabled']
 
     # All fields of user
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    email = db.Column(db.Unicode(128), unique=True, nullable=False) # TODO insert again 
+    email = db.Column(db.Unicode(128), unique=True, nullable=False)
     firstname = db.Column(db.Unicode(128), nullable=False)
     lastname = db.Column(db.Unicode(128), nullable=False)
     password = db.Column(db.Unicode(128), nullable=False)

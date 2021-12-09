@@ -1,5 +1,6 @@
 from mib.dao.manager import Manager
 from mib.models.user import User
+import string
 
 
 class UserManager(Manager):
@@ -9,9 +10,9 @@ class UserManager(Manager):
         Manager.create(user=user)
 
     @staticmethod
-    def retrieve_by_id(id_) -> User:
-        Manager.check_none(id=id_)
-        return User.query.filter(User.id == id_).first()
+    def retrieve_by_id(id) -> User:
+        Manager.check_none(id=id)
+        return User.query.filter(User.id == id).first()
 
     @staticmethod
     def retrieve_all_users():
@@ -35,14 +36,29 @@ class UserManager(Manager):
         
         return all_users
 
+    @staticmethod
+    def search_users(id: int, firstname: string, lastname: string, email: string, blacklist):
+        Manager.check_none(id=id)
+        Manager.check_none(blacklist=blacklist)
+        
+        available_users = UserManager.retrieve_users_by_blacklist(id,blacklist)
 
-    # TODO controllare utilità
+        matching_users = []
+
+        for user in available_users:
+            if (firstname != '' and firstname in user.firstname) or\
+                (lastname != '' and lastname in user.lastname) or\
+                (email != '' and email in user.email):
+
+                matching_users.append(user)
+
+        return matching_users
 
     @staticmethod
     def delete_user(user: User):
         Manager.delete(user=user)
 
     @staticmethod
-    def delete_user_by_id(id_: int):
-        user = UserManager.retrieve_by_id(id_)
+    def delete_user_by_id(id : int):
+        user = UserManager.retrieve_by_id(id)
         UserManager.delete_user(user)

@@ -187,7 +187,8 @@ class TestUsers(ViewTest):
         REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
         responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
-                  json={ "blacklist": "[1]", 
+                  json={ "blocked": [1],
+                            "blocking":[], 
                          "description": "Blacklist successfully retrieved", 
                         "status": "success"
                        }, 
@@ -228,7 +229,8 @@ class TestUsers(ViewTest):
         REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
         responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
-                  json={ "blacklist": "[]", 
+                  json={ "blocked": [],
+                           "blocking":[], 
                          "description": "Blacklist successfully retrieved", 
                         "status": "success"
                        }, 
@@ -264,7 +266,7 @@ class TestUsers(ViewTest):
         self.assertEqual(rv.status_code, 500)
 
         #target user test variables
-        json_target_in_blacklist = { "blacklist": "[1]", "message": "Blacklist successfully retrieved", "status": "success"}
+        json_target_in_blacklist = { "blocked": [1],"blocking":[],  "message": "Blacklist successfully retrieved", "status": "success"}
         
         # mocking
         app = create_app()
@@ -282,8 +284,84 @@ class TestUsers(ViewTest):
         rv = self.client.get('/users/2', json = json_get_correct_id)
         self.assertEqual(rv.status_code, 200)
         
+    @responses.activate
+    def test_07_users_search(self):
+        
+        # retrieve Barbara Verdi, our test dummy
+        rv = self.client.get('/users/prova4@mail.com')
+        test_id = rv.get_json()['user']
+        assert rv.status_code == 200
 
-    def test_07_unregister(self):
+        # json search variables
+        json_search_requester_not_found = {'requester_id': 200,'email':'user@example.com','firstname':'Name','lastname':'Surname'}
+        json_search_bad_parameters = {'requester_id': test_id['id'],'email':'','firstname':'','lastname':''}
+        json_search_success = {'requester_id': test_id['id'],'email':'user@example.com','firstname':'Name','lastname':'Surname'}
+
+        # failure 500 when blacklist is not avaialable
+        rv = self.client.get('/users/search', json = json_search_success)
+        self.assertEqual(rv.status_code, 500)
+        
+        # mocking
+        app = create_app()
+
+        BLACKLIST_ENDPOINT = app.config['BLACKLIST_MS_URL']
+        REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
+
+        responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
+                  json={ "blocked": [],
+                           "blocking":[], 
+                         "description": "Blacklist successfully retrieved", 
+                        "status": "success"
+                       }, 
+                       status=200)
+
+        # failure 404 requester id does not exist
+        rv = self.client.get('/users/search', json = json_search_requester_not_found)
+        self.assertEqual(rv.status_code, 404)
+
+        # failure 400 parameter not given
+        rv = self.client.get('/users/search', json = json_search_bad_parameters)
+        self.assertEqual(rv.status_code, 400)
+
+        # success
+        rv = self.client.get('/users/search', json = json_search_success)
+        self.assertEqual(rv.status_code, 200)
+
+    def test_08_spend_lottery_points(self):
+        # retrieve Barbara Verdi, our test dummy
+        rv = self.client.get('/users/prova4@mail.com')
+        test_id = rv.get_json()['user']
+        previous_lottery_points = test_id['lottery_points']
+        assert rv.status_code == 200
+
+        # spending lottery points variables
+        json_requester_non_existing = {'requester_id':200}
+        json_requester_existing = {'requester_id':test_id['id']}
+
+        # test user not found
+        rv = self.client.put('/users/spend', json = json_requester_non_existing)
+        self.assertEqual(rv.status_code, 404)
+        
+        # test failure not enough lottery points
+        rv = self.client.put('/users/spend', json = json_requester_existing)
+        self.assertEqual(rv.status_code, 403)
+
+        # update user to have enough points
+        from mib.dao.user_manager import UserManager
+        
+        test_user = UserManager.retrieve_by_id(test_id['id'])
+        test_user.lottery_points += 10
+        UserManager.update_user(test_user)
+
+        # test success having enough lottery points
+        rv = self.client.put('/users/spend', json = json_requester_existing)
+        self.assertEqual(rv.status_code, 200)
+
+        # checking the value in db
+        current_user = UserManager.retrieve_by_id(test_id['id'])
+        self.assertEqual(current_user.lottery_points,previous_lottery_points)
+
+    def test_09_unregister(self):
 
         # retrieve Barbara Verdi, our test dummy
         rv = self.client.get('/users/prova4@mail.com')
