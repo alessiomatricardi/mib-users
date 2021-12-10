@@ -372,7 +372,6 @@ def get_user_picture(user_id):
 
 
 def get_users_list():
-    # TODO COMMENTS
     data = request.get_json()
     requester_id = data.get('requester_id')
 
