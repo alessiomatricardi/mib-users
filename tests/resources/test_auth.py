@@ -20,6 +20,17 @@ class TestAuth(ViewTest):
             'password': TestAuth.faker.password()
         }
 
+        # login with a wrong email
+        data2 = {
+            'email': 'not_an_email@ondb.it',
+            'password': TestAuth.faker.password()
+        }
+
+        response = self.client.post('/login', json=data2)
+        json_response = response.json
+        assert response.status_code == 404
+
+
         response = self.client.post('/login', json=data)
         json_response = response.json
 

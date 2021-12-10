@@ -192,6 +192,18 @@ class TestUsers(ViewTest):
                          "description": "Blacklist successfully retrieved", 
                         "status": "success"
                        }, 
+                       status=401)
+
+        # propagating error from blacklist
+        rv = self.client.get('/users/1/picture', json = json_get_correct_id)
+        self.assertEqual(rv.status_code, 401)
+
+        responses.replace(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
+                  json={ "blocked": [1],
+                            "blocking":[], 
+                         "description": "Blacklist successfully retrieved", 
+                        "status": "success"
+                       }, 
                        status=200)
 
         # retrieving a non available user picture 
@@ -231,6 +243,17 @@ class TestUsers(ViewTest):
         responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
                   json={ "blocked": [],
                            "blocking":[], 
+                         "description": "Blacklist successfully retrieved", 
+                        "status": "success"
+                       }, 
+                       status=400)
+
+        rv = self.client.get('/users',  json = {'requester_id': test_id['id']})
+        self.assertEqual(rv.status_code, 400)
+
+        responses.replace(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
+                  json={ "blocked": [55],
+                           "blocking":[56], 
                          "description": "Blacklist successfully retrieved", 
                         "status": "success"
                        }, 
@@ -275,7 +298,13 @@ class TestUsers(ViewTest):
         REQUESTS_TIMEOUT_SECONDS = app.config['REQUESTS_TIMEOUT_SECONDS']
 
         # mocking the presence of the target user in current user's blacklist
-        responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT), json=json_target_in_blacklist, status=200)
+        responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT), json=json_target_in_blacklist, status=400)
+
+        # propagating blacklist error
+        rv = self.client.get('/users/2', json = json_get_correct_id)
+        self.assertEqual(rv.status_code, 400)
+
+        responses.replace(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT), json=json_target_in_blacklist, status=200)
 
         rv = self.client.get('/users/1', json = json_get_correct_id)
         self.assertEqual(rv.status_code, 403)
@@ -295,7 +324,7 @@ class TestUsers(ViewTest):
         # json search variables
         json_search_requester_not_found = {'requester_id': 200,'email':'user@example.com','firstname':'Name','lastname':'Surname'}
         json_search_bad_parameters = {'requester_id': test_id['id'],'email':'','firstname':'','lastname':''}
-        json_search_success = {'requester_id': test_id['id'],'email':'user@example.com','firstname':'Name','lastname':'Surname'}
+        json_search_success = {'requester_id': test_id['id'],'email':'user@example.com','firstname':'a','lastname':'a'}
 
         # failure 500 when blacklist is not avaialable
         rv = self.client.get('/users/search', json = json_search_success)
@@ -310,6 +339,18 @@ class TestUsers(ViewTest):
         responses.add(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
                   json={ "blocked": [],
                            "blocking":[], 
+                         "description": "Blacklist successfully retrieved", 
+                        "status": "success"
+                       }, 
+                       status=400)
+
+        # propagating blacklist error
+        rv = self.client.get('/users/search', json = json_search_success)
+        self.assertEqual(rv.status_code, 400)
+
+        responses.replace(responses.GET, "%s/blacklist" % (BLACKLIST_ENDPOINT),
+                  json={ "blocked": [100],
+                           "blocking":[101], 
                          "description": "Blacklist successfully retrieved", 
                         "status": "success"
                        }, 

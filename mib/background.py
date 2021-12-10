@@ -18,15 +18,14 @@ MIN_LOTTERY_POINTS = 1
 MAX_LOTTERY_POINTS = 5
 
 if os.environ.get('DOCKER_IN_USE') is not None:
-    BACKEND = BROKER = 'redis://redis_users:6378'
+    BACKEND = BROKER = 'redis://redis_users:6379'
 else:
-    BACKEND = BROKER = 'redis://localhost:6378'
+    BACKEND = BROKER = 'redis://localhost:6379'
 
 celery = Celery(__name__, backend=BACKEND, broker=BROKER) 
 
 
 celery.conf.timezone = 'Europe/Rome' # set timezone to Rome
-
 
 # 
 # 1st task: definition of a periodic task that checks if the lottery needs to be performed.
@@ -34,10 +33,12 @@ celery.conf.timezone = 'Europe/Rome' # set timezone to Rome
 # 
 celery.conf.beat_schedule = {
     'lottery_notification': {
-        'task': 'lottery_notification',   
-        'schedule': 10.0 # crontab(0, 0, day_of_month='15') # frequency of execution: each 15 of the month
+        'task': 'lottery_notification', 
+        'schedule': 10.0, # crontab(0, 0, day_of_month='15') # frequency of execution: each 15 of the month
+        'options':{'queue':'users'}
     },
 }
+
 
 
 @celery.task(name="lottery_notification")
@@ -85,5 +86,6 @@ def lottery_notification():
             UserManager.update_user(user)
 
         print("FINITO DI AGGIUNGERE PUNTI")
- 
+
+        return True
         
