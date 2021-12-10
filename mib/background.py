@@ -34,8 +34,7 @@ celery.conf.timezone = 'Europe/Rome' # set timezone to Rome
 celery.conf.beat_schedule = {
     'lottery_notification': {
         'task': 'lottery_notification', 
-        'schedule': 10.0, # crontab(0, 0, day_of_month='15') # frequency of execution: each 15 of the month
-        'options':{'queue':'users'}
+        'schedule': crontab(0, 0, day_of_month='15') # frequency of execution: each 15 of the month
     },
 }
 
@@ -55,18 +54,6 @@ def lottery_notification():
     with app.app_context():
         from mib.dao.user_manager import UserManager
         from mib.models.user import User
-        
-        """
-        creation of a user for testing purposes
-        user = User()
-        user.email = "rjknet1999@gmail.com"
-        user.firstname = "Riccardo"
-        user.lastname = "Gallo"
-        user.date_of_birth = datetime.datetime.fromisoformat('2010-10-25 15:00').date()
-        user.set_password("prova123")
-
-        UserManager.create_user(user)
-        """
 
         users = UserManager.retrieve_all_users()
         
